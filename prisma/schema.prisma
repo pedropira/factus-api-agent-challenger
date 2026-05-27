@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model customer {
+  id                       Int      @id @default(autoincrement())
+  identification_document_id Int?
+  identification           String   @unique
+  dv                       String?
+  company                  String?
+  trade_name               String?
+  names                    String?
+  address                  String?
+  email                    String?
+  phone                    String?
+  legal_organization_id    String?
+  tribute_id               String?
+  municipality_id          String?
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  invoices      invoice[]
+  credit_notes  credit_note[]
+}
+
+model product {
+  id                Int      @id @default(autoincrement())
+  code_reference    String   @unique
+  name              String
+  price             Decimal
+  tax_rate          String
+  unit_measure_id   Int
+  standard_code_id  Int
+  tribute_id        Int
+  is_excluded       Boolean  @default(false)
+  note              String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
+
+model invoice {
+  id               Int      @id @default(autoincrement())
+  reference_code   String   @unique
+  bill_number      String?  @unique
+  cufe             String?
+  status           String?
+  total            Decimal?
+  customer_id      Int?
+  numbering_range_id Int?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  customer     customer? @relation(fields: [customer_id], references: [id])
+}
+
+model credit_note {
+  id             Int      @id @default(autoincrement())
+  reference_code String   @unique
+  bill_number    String?
+  status         String?
+  total          Decimal?
+  invoice_number String?
+  customer_id    Int?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  customer customer? @relation(fields: [customer_id], references: [id])
+}
+
+model establishment {
+  id              Int      @id @default(autoincrement())
+  name            String
+  address         String
+  phone_number    String?
+  email           String?
+  municipality_id String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model numbering_range {
+  id                Int      @id @default(autoincrement())
+  prefix            String
+  from_number       Int
+  to_number         Int
+  resolution_number String
+  start_date        String
+  end_date          String
+  months            Int
+  document_type_id  String
+  is_active         Boolean  @default(true)
+  current_number    Int?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
