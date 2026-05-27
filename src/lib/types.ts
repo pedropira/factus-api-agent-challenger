@@ -1,4 +1,9 @@
-// Shared Factus-related types
+// Factus Agent — Shared Types
+// Archivo principal: re-exporta desde la nueva estructura modular
+// Mantiene backward compat con imports existentes
+
+// ── Legacy types (mantenidos para backward compat) ──────────────────────
+// Estas interfaces se usan en el proyecto existente. No romper imports.
 
 export interface Customer {
   id: number;
@@ -101,3 +106,57 @@ export interface ChatMessage {
     result?: string;
   }>;
 }
+
+// ── API Schemas (raw Factus) ────────────────────────────────────────────
+
+export type {
+  ApiAddress,
+  ApiTax,
+  ApiWithholdingTax,
+  ApiPaymentDetail,
+  ApiAllowanceCharge,
+  ApiEstablishment,
+  ApiBillingPeriod,
+  ApiOrderReference,
+  ApiRelatedDocument,
+} from "./types/api/common";
+
+export type {
+  ApiInvoiceCustomer,
+  ApiInvoiceItem,
+  CreateInvoicePayload,
+  InvoiceResponse,
+} from "./types/api/invoice";
+
+export type {
+  ApiCreditNoteItem,
+  ApiHealthInfo,
+  CreateCreditNotePayload,
+  CreditNoteResponse,
+} from "./types/api/credit-note";
+
+export type {
+  ApiProvider,
+  ApiSupportDocumentItem,
+  CreateSupportDocumentPayload,
+  SupportDocumentResponse,
+} from "./types/api/support-document";
+
+export type {
+  ApiAdjustmentNoteItem,
+  CreateAdjustmentNotePayload,
+  AdjustmentNoteResponse,
+} from "./types/api/adjustment-note";
+
+// ── MCP Schemas (simplificados) ─────────────────────────────────────────
+
+export type {
+  McpCustomerInput,
+  McpInvoiceItemInput,
+  McpPaymentDetailInput,
+  McpAllowanceChargeInput,
+  McpCreateInvoiceInput,
+  McpCreateCreditNoteInput,
+  McpCreateSupportDocumentInput,
+  McpCreateAdjustmentNoteInput,
+} from "./types/mcp/index";
