@@ -185,6 +185,25 @@ export const listInvoicesTool = tool({
   execute: async (params) => execMcpTool("list_invoices", params),
 });
 
+export const getInvoiceByNumberTool = tool({
+  description:
+    "Obtener una factura por su número asignado por Factus (prefijo + consecutivo)",
+  inputSchema: z.object({
+    number: z.string().describe("Número de factura (ej: SETP990003793)"),
+  }),
+  execute: async ({ number }) =>
+    execMcpTool("get_invoice_by_number", { number }),
+});
+
+export const getInvoiceByReferenceTool = tool({
+  description: "Obtener una factura por su código de referencia único",
+  inputSchema: z.object({
+    reference_code: z.string().describe("Código de referencia de la factura"),
+  }),
+  execute: async ({ reference_code }) =>
+    execMcpTool("get_invoice_by_reference", { reference_code }),
+});
+
 // ── Credit Note Tools ───────────────────────────────────────────────────
 
 export const createCreditNoteTool = tool({
@@ -219,6 +238,26 @@ export const createCreditNoteTool = tool({
     })),
   }),
   execute: async (params) => execMcpTool("create_credit_note", { params }),
+});
+
+export const listCreditNotesTool = tool({
+  description: "Listar notas crédito con filtros opcionales",
+  inputSchema: z.object({
+    status: z.string().nullish(),
+    reference_code: z.string().nullish(),
+    offset: z.number().min(0).default(0),
+    limit: z.number().min(1).max(100).default(20),
+  }),
+  execute: async (params) => execMcpTool("list_credit_notes", params),
+});
+
+export const getCreditNoteTool = tool({
+  description: "Obtener una nota crédito por su ID interno de Factus",
+  inputSchema: z.object({
+    factus_id: z.string().min(1).describe("ID interno de Factus"),
+  }),
+  execute: async ({ factus_id }) =>
+    execMcpTool("get_credit_note", { factus_id }),
 });
 
 // ── Support Document Tools ──────────────────────────────────────────────
@@ -256,6 +295,26 @@ export const createSupportDocumentTool = tool({
     execMcpTool("create_support_document", { params }),
 });
 
+export const listSupportDocumentsTool = tool({
+  description: "Listar documentos soporte con filtros opcionales",
+  inputSchema: z.object({
+    status: z.string().nullish(),
+    reference_code: z.string().nullish(),
+    offset: z.number().min(0).default(0),
+    limit: z.number().min(1).max(100).default(20),
+  }),
+  execute: async (params) => execMcpTool("list_support_documents", params),
+});
+
+export const getSupportDocumentTool = tool({
+  description: "Obtener un documento soporte por su número asignado por Factus",
+  inputSchema: z.object({
+    number: z.string().min(1).describe("Número de documento (prefijo + consecutivo)"),
+  }),
+  execute: async ({ number }) =>
+    execMcpTool("get_support_document", { number }),
+});
+
 // ── Adjustment Note Tools ───────────────────────────────────────────────
 
 export const createAdjustmentNoteTool = tool({
@@ -291,6 +350,26 @@ export const createAdjustmentNoteTool = tool({
     execMcpTool("create_adjustment_note", { params }),
 });
 
+export const listAdjustmentNotesTool = tool({
+  description: "Listar notas de ajuste con filtros opcionales",
+  inputSchema: z.object({
+    status: z.string().nullish(),
+    reference_code: z.string().nullish(),
+    offset: z.number().min(0).default(0),
+    limit: z.number().min(1).max(100).default(20),
+  }),
+  execute: async (params) => execMcpTool("list_adjustment_notes", params),
+});
+
+export const getAdjustmentNoteTool = tool({
+  description: "Obtener una nota de ajuste por su número de documento",
+  inputSchema: z.object({
+    number: z.string().min(1).describe("Número de documento de Factus"),
+  }),
+  execute: async ({ number }) =>
+    execMcpTool("get_adjustment_note", { number }),
+});
+
 // ── Company / Establishments ────────────────────────────────────────────
 
 export const getCompanyInfoTool = tool({
@@ -306,6 +385,50 @@ export const listEstablishmentsTool = tool({
     limit: z.number().min(1).max(100).default(20),
   }),
   execute: async (params) => execMcpTool("list_establishments", params),
+});
+
+export const getEstablishmentTool = tool({
+  description: "Obtener un establecimiento por su ID local",
+  inputSchema: z.object({
+    id: z.number().describe("ID del establecimiento"),
+  }),
+  execute: async ({ id }) => execMcpTool("get_establishment", { id }),
+});
+
+export const createEstablishmentTool = tool({
+  description: "Crear un nuevo establecimiento (sucursal)",
+  inputSchema: z.object({
+    name: z.string().max(200).describe("Nombre del establecimiento"),
+    address: z.string().max(200).describe("Dirección"),
+    phone_number: z.string().max(50).nullish().describe("Teléfono"),
+    email: z.string().max(200).nullish().describe("Correo electrónico"),
+    municipality_id: z
+      .string()
+      .max(10)
+      .describe("Código DIAN del municipio (11001, 05001)"),
+  }),
+  execute: async (params) => execMcpTool("create_establishment", { params }),
+});
+
+export const updateEstablishmentTool = tool({
+  description: "Actualizar un establecimiento existente (solo campos provistos)",
+  inputSchema: z.object({
+    id: z.number().describe("ID del establecimiento"),
+    name: z.string().max(200).nullish(),
+    address: z.string().max(200).nullish(),
+    phone_number: z.string().max(50).nullish(),
+    email: z.string().max(200).nullish(),
+    municipality_id: z.string().max(10).nullish(),
+  }),
+  execute: async (params) => execMcpTool("update_establishment", { params }),
+});
+
+export const deleteEstablishmentTool = tool({
+  description: "Eliminar un establecimiento por su ID local",
+  inputSchema: z.object({
+    id: z.number().describe("ID del establecimiento a eliminar"),
+  }),
+  execute: async ({ id }) => execMcpTool("delete_establishment", { id }),
 });
 
 // ── Numbering Ranges ────────────────────────────────────────────────────
@@ -346,11 +469,23 @@ export const mcpToolRegistry = {
   create_invoice: createInvoiceTool,
   create_invoice_with_numbering: createInvoiceWithNumberingTool,
   list_invoices: listInvoicesTool,
+  get_invoice_by_number: getInvoiceByNumberTool,
+  get_invoice_by_reference: getInvoiceByReferenceTool,
   create_credit_note: createCreditNoteTool,
+  list_credit_notes: listCreditNotesTool,
+  get_credit_note: getCreditNoteTool,
   create_support_document: createSupportDocumentTool,
+  list_support_documents: listSupportDocumentsTool,
+  get_support_document: getSupportDocumentTool,
   create_adjustment_note: createAdjustmentNoteTool,
+  list_adjustment_notes: listAdjustmentNotesTool,
+  get_adjustment_note: getAdjustmentNoteTool,
   get_company_info: getCompanyInfoTool,
   list_establishments: listEstablishmentsTool,
+  get_establishment: getEstablishmentTool,
+  create_establishment: createEstablishmentTool,
+  update_establishment: updateEstablishmentTool,
+  delete_establishment: deleteEstablishmentTool,
   get_active_numbering_ranges: getActiveNumberingRangesTool,
   get_default_numbering_range: getDefaultNumberingRangeTool,
 } as const;

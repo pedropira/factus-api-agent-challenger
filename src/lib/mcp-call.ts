@@ -104,6 +104,12 @@ export async function mcpGetInvoiceByReference(
   return callMcpTool("get_invoice_by_reference", { reference_code });
 }
 
+export async function mcpGetInvoiceByNumber(
+  number: string
+): Promise<InvoiceResponse> {
+  return callMcpTool<InvoiceResponse>("get_invoice_by_number", { number });
+}
+
 // ── Credit Notes ────────────────────────────────────────────────────────
 
 export async function mcpCreateCreditNote(
@@ -124,6 +130,12 @@ export async function mcpListCreditNotes(
   return result.credit_notes ?? [];
 }
 
+export async function mcpGetCreditNote(
+  factus_id: string
+): Promise<CreditNoteResponse> {
+  return callMcpTool<CreditNoteResponse>("get_credit_note", { factus_id });
+}
+
 // ── Support Documents ───────────────────────────────────────────────────
 
 export async function mcpCreateSupportDocument(
@@ -134,6 +146,22 @@ export async function mcpCreateSupportDocument(
   });
 }
 
+export async function mcpListSupportDocuments(
+  filters?: Record<string, unknown>
+): Promise<SupportDocumentResponse[]> {
+  const result = await callMcpTool<{ support_documents?: SupportDocumentResponse[] }>(
+    "list_support_documents",
+    filters ?? {}
+  );
+  return result.support_documents ?? [];
+}
+
+export async function mcpGetSupportDocument(
+  number: string
+): Promise<SupportDocumentResponse> {
+  return callMcpTool<SupportDocumentResponse>("get_support_document", { number });
+}
+
 // ── Adjustment Notes ────────────────────────────────────────────────────
 
 export async function mcpCreateAdjustmentNote(
@@ -142,6 +170,22 @@ export async function mcpCreateAdjustmentNote(
   return callMcpTool<AdjustmentNoteResponse>("create_adjustment_note", {
     params: payload,
   });
+}
+
+export async function mcpListAdjustmentNotes(
+  filters?: Record<string, unknown>
+): Promise<AdjustmentNoteResponse[]> {
+  const result = await callMcpTool<{ adjustment_notes?: AdjustmentNoteResponse[] }>(
+    "list_adjustment_notes",
+    filters ?? {}
+  );
+  return result.adjustment_notes ?? [];
+}
+
+export async function mcpGetAdjustmentNote(
+  number: string
+): Promise<AdjustmentNoteResponse> {
+  return callMcpTool<AdjustmentNoteResponse>("get_adjustment_note", { number });
 }
 
 // ── Numbering Ranges ────────────────────────────────────────────────────
@@ -174,4 +218,28 @@ export async function mcpListEstablishments(): Promise<
     establishments?: Record<string, unknown>[];
   }>("list_establishments", {});
   return result.establishments ?? [];
+}
+
+export async function mcpGetEstablishment(
+  id: number
+): Promise<Record<string, unknown>> {
+  return callMcpTool("get_establishment", { id });
+}
+
+export async function mcpCreateEstablishment(
+  params: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  return callMcpTool("create_establishment", params);
+}
+
+export async function mcpUpdateEstablishment(
+  params: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  return callMcpTool("update_establishment", params);
+}
+
+export async function mcpDeleteEstablishment(
+  id: number
+): Promise<Record<string, unknown>> {
+  return callMcpTool("delete_establishment", { id });
 }
