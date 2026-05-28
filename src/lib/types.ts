@@ -96,6 +96,73 @@ export interface CreditNote {
   created_at?: string;
 }
 
+// ── Dashboard Records API ──────────────────────────────────────────────
+
+export interface ApiResponse<T> {
+  data: T[];
+}
+
+export interface DashboardCustomer {
+  id: number;
+  identification: string;
+  names: string | null;
+  company: string | null;
+  email: string | null;
+  created_at?: string;
+}
+
+export interface DashboardProduct {
+  id: number;
+  code_reference: string;
+  name: string;
+  price: number;
+  tax_rate: string;
+}
+
+export interface DashboardInvoice {
+  id: number;
+  reference_code: string;
+  bill_number: string | null;
+  status: string | null;
+  total: number | null;
+  created_at: string;
+}
+
+export interface DashboardCreditNote {
+  id: number;
+  reference_code: string;
+  bill_number: string | null;
+  status: string | null;
+  total: number | null;
+  created_at: string;
+}
+
+export interface DashboardSupportDocument {
+  id: number;
+  reference_code: string;
+  number: string | null;
+  status: string | null;
+  total: number | null;
+  created_at: string;
+}
+
+export interface DashboardAdjustmentNote {
+  id: number;
+  reference_code: string;
+  number: string | null;
+  status: string | null;
+  total: number | null;
+  created_at: string;
+}
+
+export type RecordType =
+  | "customers"
+  | "products"
+  | "invoices"
+  | "credit_notes"
+  | "support_documents"
+  | "adjustment_notes";
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "tool";

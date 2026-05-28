@@ -6,94 +6,145 @@ datasource db {
   provider = "postgresql"
 }
 
-model customer {
-  id                       Int      @id @default(autoincrement())
-  identification_document_id Int?
-  identification           String   @unique
-  dv                       String?
-  company                  String?
-  trade_name               String?
-  names                    String?
-  address                  String?
-  email                    String?
-  phone                    String?
-  legal_organization_id    String?
-  tribute_id               String?
-  municipality_id          String?
-  created_at               DateTime @default(now())
-  updated_at               DateTime @updatedAt
-
-  invoices      invoice[]
-  credit_notes  credit_note[]
+model customers {
+  id                         Int        @id @default(autoincrement())
+  identification_document_id Int
+  identification             String     @db.VarChar(50)
+  dv                         String?    @db.VarChar(2)
+  company                    String?    @db.VarChar(200)
+  trade_name                 String?    @db.VarChar(200)
+  names                      String?    @db.VarChar(200)
+  address                    String?    @db.VarChar(200)
+  email                      String?    @db.VarChar(200)
+  phone                      String?    @db.VarChar(50)
+  legal_organization_id      String?    @db.VarChar(5)
+  tribute_id                 String?    @db.VarChar(5)
+  municipality_id            String?    @db.VarChar(10)
+  invoices                   invoices[]
 }
 
-model product {
-  id                Int      @id @default(autoincrement())
-  code_reference    String   @unique
-  name              String
-  price             Decimal
-  tax_rate          String
-  unit_measure_id   Int
-  standard_code_id  Int
-  tribute_id        Int
-  is_excluded       Boolean  @default(false)
-  note              String?
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+model products {
+  id               Int     @id @default(autoincrement())
+  code_reference   String  @unique(map: "ix_products_code_reference") @db.VarChar(100)
+  name             String  @db.VarChar(300)
+  price            Decimal @db.Decimal(20, 2)
+  tax_rate         String  @db.VarChar(10)
+  unit_measure_id  Int
+  standard_code_id Int
+  tribute_id       Int
+  is_excluded      Boolean
+  note             String? @db.VarChar(500)
 }
 
-model invoice {
-  id               Int      @id @default(autoincrement())
-  reference_code   String   @unique
-  bill_number      String?  @unique
-  cufe             String?
-  status           String?
-  total            Decimal?
-  customer_id      Int?
-  numbering_range_id Int?
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  customer     customer? @relation(fields: [customer_id], references: [id])
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model allowance_charges {
+  id           Int      @id @default(autoincrement())
+  invoice_id   Int
+  concept_type String   @db.VarChar(5)
+  is_surcharge Boolean
+  reason       String   @db.VarChar(500)
+  base_amount  Decimal  @db.Decimal(20, 2)
+  amount       Decimal  @db.Decimal(20, 2)
+  invoices     invoices @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model credit_note {
-  id             Int      @id @default(autoincrement())
-  reference_code String   @unique
-  bill_number    String?
-  status         String?
-  total          Decimal?
-  invoice_number String?
-  customer_id    Int?
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-
-  customer customer? @relation(fields: [customer_id], references: [id])
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model establishments {
+  id              Int        @id @default(autoincrement())
+  name            String     @db.VarChar(200)
+  address         String     @db.VarChar(200)
+  phone_number    String?    @db.VarChar(50)
+  email           String?    @db.VarChar(200)
+  municipality_id String     @db.VarChar(10)
+  invoices        invoices[]
 }
 
-model establishment {
-  id              Int      @id @default(autoincrement())
-  name            String
-  address         String
-  phone_number    String?
-  email           String?
-  municipality_id String
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invoice_items {
+  id                    Int                 @id @default(autoincrement())
+  invoice_id            Int
+  code_reference        String              @db.VarChar(100)
+  name                  String              @db.VarChar(300)
+  quantity              Int
+  price                 Decimal             @db.Decimal(20, 2)
+  discount_rate         Decimal?            @db.Decimal(5, 2)
+  tax_rate              String              @db.VarChar(10)
+  unit_measure_id       Int
+  standard_code_id      Int
+  is_excluded           Boolean
+  tribute_id            Int
+  scheme_id             String?             @db.VarChar(5)
+  note                  String?             @db.VarChar(500)
+  withholding_taxes_raw Json?               @map("withholding_taxes") @db.Json
+  mandate               Json?               @db.Json
+  additional_properties Json?               @db.Json
+  gross_value           Decimal?            @db.Decimal(20, 2)
+  taxable_amount        Decimal?            @db.Decimal(20, 2)
+  tax_amount            Decimal?            @db.Decimal(20, 2)
+  total                 Decimal?            @db.Decimal(20, 2)
+  invoices              invoices            @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  withholding_taxes     withholding_taxes[]
 }
 
-model numbering_range {
-  id                Int      @id @default(autoincrement())
-  prefix            String
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invoices {
+  id                       Int                 @id @default(autoincrement())
+  document                 String              @db.VarChar(5)
+  numbering_range_id       Int
+  reference_code           String              @unique(map: "ix_invoices_reference_code") @db.VarChar(100)
+  observation              String?             @db.VarChar(250)
+  payment_form             String?             @db.VarChar(5)
+  payment_due_date         String?             @db.VarChar(10)
+  payment_method_code      String?             @db.VarChar(5)
+  operation_type           Int?
+  send_email               Boolean
+  order_reference          Json?               @db.Json
+  billing_period           Json?               @db.Json
+  establishment_id         Int?
+  customer_id              Int
+  number                   String?             @db.VarChar(50)
+  status                   Int?
+  cufe                     String?             @db.VarChar(100)
+  qr                       String?             @db.VarChar(500)
+  validated                String?             @db.VarChar(50)
+  gross_value              Decimal?            @db.Decimal(20, 2)
+  taxable_amount           Decimal?            @db.Decimal(20, 2)
+  tax_amount               Decimal?            @db.Decimal(20, 2)
+  total                    Decimal?            @db.Decimal(20, 2)
+  discount                 Decimal?            @db.Decimal(20, 2)
+  discount_rate            String?             @db.VarChar(10)
+  has_claim                Boolean
+  is_negotiable_instrument Boolean
+  errors                   Json?               @db.Json
+  created_at               DateTime?           @db.Timestamp(6)
+  allowance_charges        allowance_charges[]
+  invoice_items            invoice_items[]
+  customers                customers           @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  establishments           establishments?     @relation(fields: [establishment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  numbering_ranges         numbering_ranges    @relation(fields: [numbering_range_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model numbering_ranges {
+  id                Int        @id @default(autoincrement())
+  factus_id         Int?
+  prefix            String     @db.VarChar(10)
   from_number       Int
   to_number         Int
-  resolution_number String
-  start_date        String
-  end_date          String
+  resolution_number String     @db.VarChar(50)
+  start_date        String     @db.VarChar(10)
+  end_date          String     @db.VarChar(10)
   months            Int
-  document_type_id  String
-  is_active         Boolean  @default(true)
-  current_number    Int?
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  document_type_id  String     @db.VarChar(5)
+  is_active         Boolean
+  invoices          invoices[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model withholding_taxes {
+  id                   Int           @id @default(autoincrement())
+  invoice_item_id      Int
+  code                 String        @db.VarChar(10)
+  withholding_tax_rate String        @db.VarChar(10)
+  invoice_items        invoice_items @relation(fields: [invoice_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

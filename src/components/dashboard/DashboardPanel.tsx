@@ -2,6 +2,8 @@ import { TopCustomers } from "./TopCustomers";
 import { TopProducts } from "./TopProducts";
 import { RecentInvoices } from "./RecentInvoices";
 import { RecentCreditNotes } from "./RecentCreditNotes";
+import { RecentSupportDocuments } from "./RecentSupportDocuments";
+import { RecentAdjustmentNotes } from "./RecentAdjustmentNotes";
 
 export function DashboardPanel() {
   return (
@@ -17,6 +19,8 @@ export function DashboardPanel() {
         <TopProducts />
         <RecentInvoices />
         <RecentCreditNotes />
+        <RecentSupportDocuments />
+        <RecentAdjustmentNotes />
       </div>
     </div>
   );
