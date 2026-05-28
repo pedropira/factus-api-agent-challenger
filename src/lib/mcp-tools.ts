@@ -32,7 +32,7 @@ export const createCustomerTool = tool({
     tribute_id: z.string().max(5).nullish(),
     municipality_id: z.string().max(10).nullish().describe("Código DIAN (11001, 05001)"),
   }),
-  execute: async (params) => execMcpTool("create_customer", { params }),
+  execute: async (params) => execMcpTool("create_customer", params),
 });
 
 export const searchCustomersTool = tool({
@@ -68,7 +68,7 @@ export const createProductTool = tool({
     is_excluded: z.boolean().default(false).describe("Excluido de IVA"),
     note: z.string().max(500).nullish(),
   }),
-  execute: async (params) => execMcpTool("create_product", { params }),
+  execute: async (params) => execMcpTool("create_product", params),
 });
 
 export const searchProductsTool = tool({
@@ -129,7 +129,7 @@ export const createInvoiceTool = tool({
       amount: z.union([z.number(), z.string()]),
     })).nullish(),
   }),
-  execute: async (params) => execMcpTool("create_invoice", { params }),
+  execute: async (params) => execMcpTool("create_invoice", params),
 });
 
 export const createInvoiceWithNumberingTool = tool({
@@ -171,7 +171,7 @@ export const createInvoiceWithNumberingTool = tool({
     establishment_id: z.number().nullish(),
   }),
   execute: async (params) =>
-    execMcpTool("create_invoice_with_numbering", { params }),
+    execMcpTool("create_invoice_with_numbering", params),
 });
 
 export const listInvoicesTool = tool({
@@ -237,7 +237,7 @@ export const createCreditNoteTool = tool({
       note: z.string().nullish(),
     })),
   }),
-  execute: async (params) => execMcpTool("create_credit_note", { params }),
+  execute: async (params) => execMcpTool("create_credit_note", params),
 });
 
 export const listCreditNotesTool = tool({
@@ -292,7 +292,7 @@ export const createSupportDocumentTool = tool({
     })),
   }),
   execute: async (params) =>
-    execMcpTool("create_support_document", { params }),
+    execMcpTool("create_support_document", params),
 });
 
 export const listSupportDocumentsTool = tool({
@@ -347,7 +347,7 @@ export const createAdjustmentNoteTool = tool({
     })),
   }),
   execute: async (params) =>
-    execMcpTool("create_adjustment_note", { params }),
+    execMcpTool("create_adjustment_note", params),
 });
 
 export const listAdjustmentNotesTool = tool({
@@ -407,7 +407,7 @@ export const createEstablishmentTool = tool({
       .max(10)
       .describe("Código DIAN del municipio (11001, 05001)"),
   }),
-  execute: async (params) => execMcpTool("create_establishment", { params }),
+  execute: async (params) => execMcpTool("create_establishment", params),
 });
 
 export const updateEstablishmentTool = tool({
@@ -420,7 +420,7 @@ export const updateEstablishmentTool = tool({
     email: z.string().max(200).nullish(),
     municipality_id: z.string().max(10).nullish(),
   }),
-  execute: async (params) => execMcpTool("update_establishment", { params }),
+  execute: async (params) => execMcpTool("update_establishment", params),
 });
 
 export const deleteEstablishmentTool = tool({

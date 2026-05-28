@@ -13,15 +13,18 @@ const groq = createGroq({
   // Uses GROQ_API_KEY env var by default
 });
 
+// Groq models (free tier TPD limits vary):
+//   llama-3.3-70b-versatile  → 100K TPD
+//   llama-3.1-8b-instant     → 1M TPD (recomendado para pruebas)
+//   mixtral-8x7b-32768       → 100K TPD
+//   gemma2-9b-it             → 100K TPD
+//
+// To swap provider:
+//   return google("gemini-2.0-flash");       // Google AI Studio
+//   return openai("gpt-4o");                  // OpenAI (paid)
+//   return anthropic("claude-3-5-sonnet");    // Anthropic (paid)
+// No other file needs to change.
+
 export function createModel() {
-  return groq("llama-3.3-70b-versatile");
-  // Other free Groq models:
-  //   groq("mixtral-8x7b-32768")
-  //   groq("gemma2-9b-it")
-  //
-  // To swap provider:
-  //   return google("gemini-2.0-flash");       // Google AI Studio
-  //   return openai("gpt-4o");                  // OpenAI (paid)
-  //   return anthropic("claude-3-5-sonnet");    // Anthropic (paid)
-  // No other file needs to change.
+  return groq("llama-3.1-8b-instant");
 }

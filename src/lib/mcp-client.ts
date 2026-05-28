@@ -53,9 +53,13 @@ export async function callMcpTool<T = unknown>(
   args: Record<string, unknown>
 ): Promise<T> {
   const c = await getMcpClient();
+  // The MCP server expects ALL tool arguments nested under a "params" key.
+  // This is because every tool function accepts a single Pydantic model
+  // parameter named "params" (e.g. async def get_product_by_code(params: GetProductByCodeParams)).
+  // Without this wrapping, the server returns a 422 validation error.
   const result = await c.callTool({
     name: toolName,
-    arguments: args,
+    arguments: { params: args },
   });
   return result.content as T;
 }
