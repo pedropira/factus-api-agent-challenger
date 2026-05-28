@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { ChatMessage } from "@/lib/types";
 
@@ -11,43 +11,173 @@ const WELCOME_MESSAGE: ChatMessage = {
     "¡Hola! Soy tu agente de facturación electrónica.\n\nPuedes pedirme cosas como:\n- *Crear un cliente* → \"Crea un cliente nuevo\"\n- *Facturar* → \"Crea una factura para Carlos Pérez con un Laptop Gamer\"\n- *Consultar* → \"Búscame el producto PROD-001\"\n- *Listar* → \"Muéstrame las últimas facturas\"\n\n¿En qué te ayudo hoy?",
 };
 
+/**
+ * Parse a single SSE line from the UI message stream.
+ * Format: "data: {"type":"text-delta","id":"txt-0","delta":"text"}"
+ * Other types: start, start-step, text-start, text-end, finish-step, finish, error
+ */
+function parseSSELine(line: string): string | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("data: ")) return null;
+
+  const payload = trimmed.slice(6);
+  if (payload === "[DONE]") return null;
+
+  try {
+    const parsed = JSON.parse(payload);
+    if (parsed.type === "text-delta" && typeof parsed.delta === "string") {
+      return parsed.delta;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Check if an SSE line signals an error. */
+function getSSEError(line: string): string | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("data: ")) return null;
+
+  try {
+    const parsed = JSON.parse(trimmed.slice(6));
+    if (parsed.type === "error") return parsed.errorText ?? "Unknown error";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function ChatShell() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: input,
-    };
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!input.trim() || isLoading) return;
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
+      const currentMessages = messagesRef.current;
 
-    // TODO: call api/chat/route.ts with streamText
-    // For now, simulate a response
-    setTimeout(() => {
-      const response: ChatMessage = {
+      const userMessage: ChatMessage = {
         id: crypto.randomUUID(),
-        role: "assistant",
-        content:
-          "Todavía estoy en construcción. Pronto podré conectarme al MCP de Factus para crear facturas, clientes y productos. 🏗️",
+        role: "user",
+        content: input,
       };
-      setMessages((prev) => [...prev, response]);
-      setIsLoading(false);
-    }, 1000);
-  }
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+
+      const assistantId = crypto.randomUUID();
+      const assistantMessage: ChatMessage = {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      abortRef.current = new AbortController();
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...currentMessages, userMessage].map((m) => ({
+              id: m.id,
+              role: m.role === "tool" ? "assistant" : m.role,
+              content: m.content,
+              parts: [{ type: "text" as const, text: m.content }],
+            })),
+          }),
+          signal: abortRef.current.signal,
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(err.error ?? `HTTP ${res.status}`);
+        }
+
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        let lastError: string | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            // Check for errors first
+            const err = getSSEError(line);
+            if (err) lastError = err;
+
+            // Accumulate text deltas
+            const text = parseSSELine(line);
+            if (text) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, content: m.content + text }
+                    : m,
+                ),
+              );
+            }
+          }
+        }
+
+        // If we got no text at all but there was an error, show it
+        if (lastError) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId && !m.content
+                ? { ...m, content: `Error: ${lastError}` }
+                : m,
+            ),
+          );
+        }
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        console.error("[ChatShell]", error);
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  content:
+                    m.content || `Error: ${(error as Error).message ?? "Chat unavailable"}`,
+                }
+              : m,
+          ),
+        );
+      } finally {
+        abortRef.current = null;
+        setIsLoading(false);
+      }
+    },
+    [input, isLoading],
+  );
 
   return (
     <div className="flex flex-col h-full">
