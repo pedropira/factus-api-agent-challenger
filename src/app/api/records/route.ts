@@ -63,7 +63,7 @@ async function queryRecords(type: RecordType) {
     );
     const parsed = JSON.parse(raw[0].text);
     const docs: Record<string, unknown>[] = parsed?.data?.data?.data ?? [];
-    return docs.map((doc, i) => normalizeDoc(type)(doc, i)).slice(0, 10);
+    return docs.map(normalizeDoc(type)).slice(0, 10);
   }
 
   // ── Customers & Products: read from Supabase via Prisma ──────────
@@ -82,8 +82,8 @@ async function queryRecords(type: RecordType) {
       default:
         return [];
     }
-  } catch (e) {
-    console.error(`Prisma error for type "${type}":`, e instanceof Error ? e.message : e);
+  } catch {
+    // Tables may not exist in Supabase yet (P2021). Return empty instead of crashing.
     return [];
   }
 }
@@ -99,7 +99,11 @@ function normalizeDoc(type: RecordType) {
       created_at: doc.created_at ?? "",
     };
 
-    const id = typeof doc.id === "number" ? doc.id : -(index + 1);
+    // Negative offset ensures MCP-sourced keys never collide with real DB IDs
+    // and we never emit id: 0 (which would cause React key collisions).
+    const id = typeof doc.id === "number" && doc.id !== 0
+      ? doc.id
+      : -(index + 1001);
     switch (type) {
       case "invoices":
         return { ...base, id, bill_number: doc.number ?? null };

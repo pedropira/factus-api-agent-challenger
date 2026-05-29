@@ -5,6 +5,9 @@
 //   - Agent persona (system-prompt.ts)
 //   - MCP tool definitions (mcp-tools.ts)
 //   - AI SDK v6 streamText with multi-step support
+//
+// Persistence is handled client-side in ChatShell (both localStorage
+// for anonymous users and Supabase for authenticated users).
 
 import { streamText, convertToModelMessages, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
@@ -17,7 +20,7 @@ import { mcpToolRegistry } from "@/lib/mcp-tools";
  * requires `parts` (UIMessagePart[]).  Normalize so convertToModelMessages
  * doesn't crash on undefined `parts`.
  */
-function normalizeParts(
+export function normalizeParts(
   msgs: Array<{ id: string; role: string; content?: string; parts?: unknown }>,
 ): UIMessage[] {
   return msgs.map((m) => {
@@ -32,13 +35,36 @@ function normalizeParts(
   });
 }
 
+/**
+ * Keep only the last N full exchanges (user → assistant pairs).
+ * Ensures we never cut mid-exchange.
+ */
+const MAX_EXCHANGES = 4;
+
+export function trimHistory(
+  msgs: UIMessage[],
+  maxExchanges = MAX_EXCHANGES,
+): UIMessage[] {
+  const userIndices = msgs
+    .map((m, i) => (m.role === "user" ? i : -1))
+    .filter((i) => i !== -1);
+
+  if (userIndices.length <= maxExchanges) return msgs;
+
+  // Keep from the (last maxExchanges)th user message onward
+  return msgs.slice(userIndices[userIndices.length - maxExchanges]);
+}
+
 export async function runChatPipeline(
   messages: Array<{ id: string; role: string; content?: string; parts?: unknown }>,
 ) {
+  const normalized = normalizeParts(messages);
+  const trimmed = trimHistory(normalized);
+
   return streamText({
     model: createModel(),
     system: systemPrompt,
-    messages: await convertToModelMessages(normalizeParts(messages)),
+    messages: await convertToModelMessages(trimmed),
     tools: mcpToolRegistry,
     stopWhen: stepCountIs(5),
     onStepFinish: ({ toolResults, text }) => {

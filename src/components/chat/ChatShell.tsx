@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MessageBubble } from "./MessageBubble";
+import { createChatStorage } from "@/lib/chat/storage";
+import { useAuth } from "@/components/auth/AuthProvider";
 import type { ChatMessage } from "@/lib/types";
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -48,15 +50,37 @@ function getSSEError(line: string): string | null {
   }
 }
 
+/**
+ * Filter out the welcome message before persisting — it's static,
+ * shown only when there's no conversation history.
+ */
+function withoutWelcome(msgs: ChatMessage[]): ChatMessage[] {
+  return msgs.filter((m) => m.id !== "welcome");
+}
+
 export function ChatShell() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const messagesRef = useRef(messages);
+  const storageRef = useRef(createChatStorage());
+  const { user } = useAuth();
   messagesRef.current = messages;
 
+  // ── Re-create storage when auth state changes ─────────────────────────
+  useEffect(() => {
+    storageRef.current = createChatStorage(user?.id);
+    // Reload messages from the new backend
+    storageRef.current.load().then((saved) => {
+      setMessages(saved.length > 0 ? saved : [WELCOME_MESSAGE]);
+      setLoaded(true);
+    });
+  }, [user?.id]);
+
+  // ── Auto-scroll ───────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -66,6 +90,14 @@ export function ChatShell() {
     return () => abortRef.current?.abort();
   }, []);
 
+  // ── New chat ──────────────────────────────────────────────────────────
+  const handleNewChat = useCallback(async () => {
+    await storageRef.current.clear();
+    setMessages([WELCOME_MESSAGE]);
+    setInput("");
+  }, []);
+
+  // ── Send message ──────────────────────────────────────────────────────
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -79,9 +111,14 @@ export function ChatShell() {
         content: input,
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      const nextMessages = [...currentMessages, userMessage];
+
+      setMessages(nextMessages);
       setInput("");
       setIsLoading(true);
+
+      // Save immediately so user message survives a reload mid-stream
+      storageRef.current.save(withoutWelcome(nextMessages));
 
       const assistantId = crypto.randomUUID();
       const assistantMessage: ChatMessage = {
@@ -174,6 +211,8 @@ export function ChatShell() {
       } finally {
         abortRef.current = null;
         setIsLoading(false);
+        // Persist after the assistant response is complete
+        storageRef.current.save(withoutWelcome(messagesRef.current));
       }
     },
     [input, isLoading],
@@ -182,20 +221,39 @@ export function ChatShell() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <header className="border-b border-zinc-200 dark:border-zinc-700 px-4 py-3">
-        <h1 className="text-lg font-semibold tracking-tight">
-          Factus Agent
-        </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Facturación electrónica colombiana
-        </p>
+      <header className="border-b border-zinc-200 dark:border-zinc-700 px-4 py-3 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">
+            Factus Agent
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Facturación electrónica colombiana
+          </p>
+        </div>
+        {loaded && messages.length > 0 && messages[0].id !== "welcome" && (
+          <button
+            type="button"
+            onClick={handleNewChat}
+            disabled={isLoading}
+            className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors disabled:opacity-30"
+            title="Iniciar nueva conversación"
+          >
+            ✕ Nuevo chat
+          </button>
+        )}
       </header>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
-        ))}
+        {!loaded && (
+          <p className="text-xs text-zinc-400 italic text-center pt-8">
+            Cargando conversación...
+          </p>
+        )}
+        {loaded &&
+          messages.map((msg) => (
+            <MessageBubble key={msg.id} message={msg} />
+          ))}
         {isLoading && (
           <div className="flex items-center gap-2 text-sm text-zinc-400 px-4">
             <span className="animate-pulse">●</span>

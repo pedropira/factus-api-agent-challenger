@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DashboardAdjustmentNote } from "@/lib/types";
+import { DownloadPdfButton } from "@/components/ui/DownloadPdfButton";
 
 export function RecentAdjustmentNotes() {
   const [notes, setNotes] = useState<DashboardAdjustmentNote[]>([]);
@@ -40,6 +41,7 @@ export function RecentAdjustmentNotes() {
                 <th className="text-left px-3 py-2 font-medium text-zinc-500">Estado</th>
                 <th className="text-right px-3 py-2 font-medium text-zinc-500">Total</th>
                 <th className="text-left px-3 py-2 font-medium text-zinc-500">Fecha</th>
+                <th className="w-10 px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -60,6 +62,13 @@ export function RecentAdjustmentNotes() {
                     {n.total != null ? `$${Number(n.total).toLocaleString("es-CO")}` : "—"}
                   </td>
                   <td className="px-3 py-2 text-zinc-400">{new Date(n.created_at).toLocaleDateString()}</td>
+                  <td className="px-3 py-2">
+                    <DownloadPdfButton
+                      type="adjustment_note"
+                      number={n.number ?? ""}
+                      disabled={!n.number || n.status !== "ACCEPTED"}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>

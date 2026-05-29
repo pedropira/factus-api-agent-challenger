@@ -243,3 +243,75 @@ export async function mcpDeleteEstablishment(
 ): Promise<Record<string, unknown>> {
   return callMcpTool("delete_establishment", { id });
 }
+
+// ── PDF Downloads ────────────────────────────────────────────────────────
+
+/**
+ * Helper: extrae el base64 del PDF del response del MCP.
+ * El patrón típico es: parsed.data.data.pdf o parsed.data.pdf
+ */
+function extractPdfFromResponse(content: { type: string; text: string }[]): string {
+  if (!content || !Array.isArray(content) || content.length === 0 || !content[0]?.text) {
+    throw new Error("No content received from MCP tool response");
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content[0].text);
+  } catch {
+    throw new Error(`Failed to parse MCP tool JSON response: ${content[0].text.slice(0, 200)}`);
+  }
+
+  const dataObj = parsed as Record<string, unknown> | null | undefined;
+  const data = dataObj?.data as Record<string, unknown> | null | undefined;
+  const innerData = data?.data as Record<string, unknown> | null | undefined;
+  
+  const pdf = (innerData?.pdf ?? data?.pdf ?? dataObj?.pdf) as string | undefined;
+
+  if (!pdf || typeof pdf !== "string") {
+    throw new Error(
+      `No valid base64 PDF found in MCP response: ${JSON.stringify(parsed).slice(0, 200)}`
+    );
+  }
+  return pdf;
+}
+
+export async function mcpDownloadInvoicePdf(
+  number: string
+): Promise<string> {
+  const result = await callMcpTool<{ type: string; text: string }[]>(
+    "download_invoice_pdf",
+    { number }
+  );
+  return extractPdfFromResponse(result);
+}
+
+export async function mcpDownloadCreditNotePdf(
+  number: string
+): Promise<string> {
+  const result = await callMcpTool<{ type: string; text: string }[]>(
+    "download_credit_note_pdf",
+    { number }
+  );
+  return extractPdfFromResponse(result);
+}
+
+export async function mcpDownloadSupportDocumentPdf(
+  number: string
+): Promise<string> {
+  const result = await callMcpTool<{ type: string; text: string }[]>(
+    "download_support_document_pdf",
+    { number }
+  );
+  return extractPdfFromResponse(result);
+}
+
+export async function mcpDownloadAdjustmentNotePdf(
+  number: string
+): Promise<string> {
+  const result = await callMcpTool<{ type: string; text: string }[]>(
+    "download_adjustment_note_pdf",
+    { number }
+  );
+  return extractPdfFromResponse(result);
+}

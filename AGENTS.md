@@ -70,15 +70,15 @@ The MCP server does NOT require API keys, Bearer tokens, or any authentication h
 ### Available MCP tools
 
 ```
-✅ create_customer, search_customers, get_customer, update_customer, delete_customer
-✅ create_product, search_products, get_product_by_code, update_product, delete_product
-✅ create_invoice, create_invoice_with_numbering, list_invoices
-✅ create_credit_note, create_adjustment_note
-✅ get_company_info
-✅ list_establishments, get_establishment
-✅ get_active_numbering_ranges, get_default_numbering_range
-❌ list_customers     → does NOT exist (use Supabase direct)
-❌ list_products      → does NOT exist (use Supabase direct)
+Customers:     create_customer, get_customer, search_customers, update_customer, delete_customer
+Products:      create_product, get_product, get_product_by_code, search_products, update_product, delete_product
+Establishments: create_establishment, get_establishment, list_establishments, update_establishment, delete_establishment
+Numbering:     create_numbering_range, get_active_numbering_ranges, get_default_numbering_range, fetch_numbering_ranges_from_factus
+Invoices:      create_invoice, create_invoice_with_numbering, list_invoices, get_invoice_by_number, get_invoice_by_reference, delete_invoice, download_invoice_pdf, download_invoice_xml
+Credit Notes:  create_credit_note, list_credit_notes, get_credit_note, delete_credit_note, download_credit_note_pdf, download_credit_note_xml
+Adj. Notes:    create_adjustment_note, list_adjustment_notes, get_adjustment_note, delete_adjustment_note, download_adjustment_note_pdf, download_adjustment_note_xml
+Support Docs:  create_support_document, list_support_documents, get_support_document, delete_support_document, download_support_document_pdf, download_support_document_xml
+Company:       get_company_info
 ```
 
 ### Factus API → your reference codes
@@ -150,7 +150,7 @@ Wait ~60s if server is cold-starting. First response establishes the session.
 
 ## Known test data
 
-- **Product**: PROD-001 → Laptop Gamer, $5,500,000, IVA 19%, tribute_id: 1
-- **Customer**: ID 3 → Carlos Andrés Pérez, CC 123456789
+- **Product**: PROD-001 → Laptop Gamer, $5,500,000, IVA 19%, tribute_id: 1, standard_code_id: 999, unit_measure_id: 70
+- **Customer**: ID 3 → Carlos Andrés Pérez, CC 123456789, identification_document_id: 13
 - **Invoice**: SETP990004388 → Laptop Gamer x1, $6,545,000 total, validated with DIAN
 - **Invoice warnings**: FAJ44b, FAJ43b are expected (invented company data for testing)

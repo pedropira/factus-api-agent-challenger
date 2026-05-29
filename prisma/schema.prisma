@@ -20,20 +20,22 @@ model customers {
   legal_organization_id      String?    @db.VarChar(5)
   tribute_id                 String?    @db.VarChar(5)
   municipality_id            String?    @db.VarChar(10)
+  created_at                 DateTime?  @default(now()) @db.Timestamp(6)
   invoices                   invoices[]
 }
 
 model products {
-  id               Int     @id @default(autoincrement())
-  code_reference   String  @unique(map: "ix_products_code_reference") @db.VarChar(100)
-  name             String  @db.VarChar(300)
-  price            Decimal @db.Decimal(20, 2)
-  tax_rate         String  @db.VarChar(10)
+  id               Int       @id @default(autoincrement())
+  code_reference   String    @unique(map: "ix_products_code_reference") @db.VarChar(100)
+  name             String    @db.VarChar(300)
+  price            Decimal   @db.Decimal(20, 2)
+  tax_rate         String    @db.VarChar(10)
   unit_measure_id  Int
   standard_code_id Int
   tribute_id       Int
   is_excluded      Boolean
-  note             String? @db.VarChar(500)
+  note             String?   @db.VarChar(500)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DashboardSupportDocument } from "@/lib/types";
+import { DownloadPdfButton } from "@/components/ui/DownloadPdfButton";
 
 export function RecentSupportDocuments() {
   const [docs, setDocs] = useState<DashboardSupportDocument[]>([]);
@@ -40,6 +41,7 @@ export function RecentSupportDocuments() {
                 <th className="text-left px-3 py-2 font-medium text-zinc-500">Estado</th>
                 <th className="text-right px-3 py-2 font-medium text-zinc-500">Total</th>
                 <th className="text-left px-3 py-2 font-medium text-zinc-500">Fecha</th>
+                <th className="w-10 px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -60,6 +62,13 @@ export function RecentSupportDocuments() {
                     {d.total != null ? `$${Number(d.total).toLocaleString("es-CO")}` : "—"}
                   </td>
                   <td className="px-3 py-2 text-zinc-400">{new Date(d.created_at).toLocaleDateString()}</td>
+                  <td className="px-3 py-2">
+                    <DownloadPdfButton
+                      type="support_document"
+                      number={d.number ?? ""}
+                      disabled={!d.number || d.status !== "ACCEPTED"}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
