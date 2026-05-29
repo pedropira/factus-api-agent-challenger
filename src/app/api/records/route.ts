@@ -82,8 +82,8 @@ async function queryRecords(type: RecordType) {
       default:
         return [];
     }
-  } catch {
-    // Tables may not exist in Supabase yet (P2021). Return empty instead of crashing.
+  } catch (err) {
+    console.error(`[Records API] Error querying ${type}:`, err instanceof Error ? err.message : err);
     return [];
   }
 }
