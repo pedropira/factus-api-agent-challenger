@@ -1,4 +1,5 @@
-// Auth middleware — protects routes by checking Supabase session.
+// Auth proxy — protects routes by checking Supabase session.
+// Next.js 16+: middleware.ts is now proxy.ts (same API, just renamed).
 // Redirects unauthenticated users to /login with a redirectTo param.
 
 import { type NextRequest, NextResponse } from "next/server";
@@ -7,7 +8,7 @@ import { createServerClient } from "@supabase/ssr";
 // Routes that don't require authentication
 const publicRoutes = ["/login", "/api/auth/login", "/api/auth/session"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes + API routes (API routes handle auth internally)
