@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { WorkspaceProvider } from "@/context/workspace-context";
+import { ThemeProvider } from "@/context/theme-context";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
@@ -27,10 +29,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="h-full flex flex-col overflow-hidden">
+        {/* ⚡ Anti-FOUC: apply theme before React hydrates */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `!function(){try{var e=localStorage.getItem("factus-agent-theme")||(window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");"dark"===e?document.documentElement.classList.add("dark"):document.documentElement.classList.remove("dark")}catch(e){}}();`,
+          }}
+        />
+        <ThemeProvider>
+          <AuthProvider>
+            <WorkspaceProvider>{children}</WorkspaceProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
