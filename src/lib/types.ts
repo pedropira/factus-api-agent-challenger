@@ -161,7 +161,8 @@ export type RecordType =
   | "invoices"
   | "credit_notes"
   | "support_documents"
-  | "adjustment_notes";
+  | "adjustment_notes"
+  | "establishments";
 
 export interface ChatMessage {
   id: string;

@@ -20,5 +20,5 @@ const google = createGoogleGenerativeAI({
 // No other file needs to change.
 
 export function createModel() {
-  return google("gemini-2.5-flash-lite");
+  return google("gemini-2.5-flash");
 }

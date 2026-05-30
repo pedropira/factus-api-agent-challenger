@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useWorkspace, type EntityType } from "@/context/workspace-context";
 import { useTheme } from "@/context/theme-context";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   LayoutDashboard,
   Users,
@@ -14,6 +15,7 @@ import {
   Building2,
   Sun,
   Moon,
+  LogOut,
   type LucideIcon,
   Bot,
 } from "lucide-react";
@@ -44,9 +46,10 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 export function Sidebar() {
   const { currentEntity, setCurrentEntity } = useWorkspace();
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
   return (
-    <nav className="flex h-full flex-col bg-factus-sidebar border-r border-line-default">
+    <nav className="flex h-full flex-col bg-factus-sidebar">
       {/* Brand */}
       <div className="flex items-center gap-3 px-4 py-2 mt-8 mb-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-factus-primary/20">
@@ -98,7 +101,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="border-t border-line-default px-3 py-3 space-y-2">
         {/* Theme Toggle — segmented control */}
-        <div className="flex items-center rounded-xl bg-surface-elevated p-0.5 shadow-inner mb-5">
+        <div className="flex items-center rounded-xl bg-surface-elevated p-0.5 shadow-inner">
           <button
             type="button"
             onClick={() => theme !== "light" && toggleTheme()}
@@ -132,6 +135,21 @@ export function Sidebar() {
             Oscuro
           </button>
         </div>
+
+        {/* Logout */}
+        <button
+          type="button"
+          onClick={signOut}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-content-tertiary transition-all hover:bg-overlay-hover hover:text-red-400"
+        >
+          <LogOut className="h-3.5 w-3.5 shrink-0" />
+          <span className="flex-1 text-left">Cerrar sesión</span>
+          {user?.email && (
+            <span className="truncate text-[10px] text-content-tertiary/50">
+              {user.email}
+            </span>
+          )}
+        </button>
 
         <p className="text-[10px] text-content-tertiary/60 leading-relaxed px-1">
           Conectado a Factus API · DIAN

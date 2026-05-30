@@ -265,12 +265,24 @@ function extractPdfFromResponse(content: { type: string; text: string }[]): stri
   const dataObj = parsed as Record<string, unknown> | null | undefined;
   const data = dataObj?.data as Record<string, unknown> | null | undefined;
   const innerData = data?.data as Record<string, unknown> | null | undefined;
-  
-  const pdf = (innerData?.pdf ?? data?.pdf ?? dataObj?.pdf) as string | undefined;
 
-  if (!pdf || typeof pdf !== "string") {
+  // Try all known response shapes:
+  //   - parsed.data.data.pdf  (nested Factus response)
+  //   - parsed.data.pdf       (flat response)
+  //   - parsed.pdf            (bare response)
+  //   - parsed.data.content   (MCP server base64 field)
+  const pdf =
+    (innerData?.pdf as string | undefined) ??
+    (data?.pdf as string | undefined) ??
+    (dataObj?.pdf as string | undefined) ??
+    (data?.content as string | undefined);
+
+  if (!pdf || typeof pdf !== "string" || pdf.length === 0) {
+    // Build a helpful error showing what fields ARE available
+    const fields = data ? Object.keys(data).join(", ") : "none";
     throw new Error(
-      `No valid base64 PDF found in MCP response: ${JSON.stringify(parsed).slice(0, 200)}`
+      `No se pudo descargar el PDF. El MCP respondió con: ${JSON.stringify(parsed).slice(0, 200)}. ` +
+      `Campos disponibles en data: ${fields}`
     );
   }
   return pdf;

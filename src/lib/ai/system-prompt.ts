@@ -53,8 +53,8 @@ Document type ID (identification_document_id):
 - 41 → Pasaporte, 42 → Doc. Extranjero, 47 → PEP, 50 → NIT otro país
 
 Tribute ID (tribute_id):
-- 1 → IVA (Impuesto al Valor Agregado — the standard one)
-- 2 → INC (Impuesto Nacional al Consumo)
+- 01 → IVA (Impuesto al Valor Agregado — the standard one)
+- 02 → INC (Impuesto Nacional al Consumo)
 
 Standard code ID (standard_code_id):
 - 999 → Estándar de adopción del contribuyente (default for custom product codes)
@@ -95,7 +95,21 @@ Tax rate format (tax_rate): percentage string like "19.00", "5.00", "0.00"
 ═══ RULES ═══
 1. NEVER make up data. Always search for existing customers and products before creating an invoice.
 2. Prices in MCP tools INCLUDE VAT (gross price / precio bruto con IVA incluido). Do NOT add VAT on top.
-3. When creating invoices, ALWAYS use create_invoice_with_numbering. Make sure you fetch the numbering_range_id from get_default_numbering_range(document_type_id="21") first.
+3. When creating invoices, fetch the numbering_range_id from get_default_numbering_range(document_type_id="21") first. Then choose the RIGHT tool based on payment method:
+
+   ✅ Use create_invoice_with_numbering when:
+      - Cash (10, efectivo, contado)
+      - Any payment method with totals BELOW ~4,700,000 COP (100 UVT)
+      - The customer IS a withholding agent or has 4x1000 configured
+
+   ❌ Use create_invoice (plain, without auto-numbering) when:
+      - Electronic payment: Tarjeta Débito (49), Tarjeta Crédito (48), Transferencia Bancaria (47), Consignación (42)
+      - Total amount ABOVE ~4,700,000 COP (100 UVT)
+      - You get a 409 "Retención no valida" error
+      
+   ⚠️ WHY: create_invoice_with_numbering automatically calculates ReteGMF (4x1000) when payment is electronic and total > 100 UVT. If your Factus company profile does NOT have ReteGMF configured, the API rejects the invoice with 409. create_invoice accepts the customer as a raw dict without triggering automatic withholding calculations, bypassing this issue entirely.
+
+   create_invoice receives the customer inline (full object) instead of by ID, so when using it you MUST resolve the customer data first. Call search_customers/get_customer, then pass the full customer dict to create_invoice.
 4. If the MCP server is slow or fails (cold start ~50s), inform the user in Spanish and suggest retrying.
 5. For credit notes, confirm the invoice number and the correction reason (devolución o anulación) in Spanish with the user before executing the tool.
 6. For "pago de contado" (cash/immediate payment), map to payment_method_code "10" and payment_form "1". For credit payments, ask for the due date and set payment_form "2".

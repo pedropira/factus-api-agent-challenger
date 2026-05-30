@@ -5,7 +5,7 @@ import { MessageBubble } from "@/components/chat/MessageBubble";
 import { createChatStorage } from "@/lib/chat/storage";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useWorkspace } from "@/context/workspace-context";
-import { SendHorizonal, Sparkles } from "lucide-react";
+import { SendHorizonal, Sparkles, Plus } from "lucide-react";
 import type { ChatMessage } from "@/lib/types";
 
 const WELCOME_MESSAGE: ChatMessage = {
@@ -56,17 +56,29 @@ export function CoPilotChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const messagesRef = useRef(messages);
   const storageRef = useRef(createChatStorage());
   const { user } = useAuth();
+
+  // ── Auto-resize textarea ────────────────────────────────────────────
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+  }, [input]);
 
   // ── Context integration ────────────────────────────────────────────────
   const { chatInputValue, setChatInputValue, triggerRefresh } = useWorkspace();
   const prevInputRef = useRef(chatInputValue);
   const refreshFiredRef = useRef(false);
 
-  messagesRef.current = messages;
+  // Sync messages ref in effect, NOT in render body (React 19 safety)
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // Sync context chatInputValue → local input state
   useEffect(() => {
@@ -238,7 +250,7 @@ export function CoPilotChat() {
           </div>
           <div>
             <p className="flex items-center gap-1 text-[12px] text-content-tertiary uppercase tracking-wide">
-              gemini-2.5-flash-lite · Facturación Electrónica
+              gemini-2.5-flash · Facturación Electrónica
             </p>
           </div>
         </div>
@@ -247,9 +259,10 @@ export function CoPilotChat() {
             type="button"
             onClick={handleNewChat}
             disabled={isLoading}
-            className="rounded-md px-2.5 py-1 text-[11px] font-medium text-content-tertiary transition-colors hover:bg-overlay-hover hover:text-content-primary disabled:opacity-30"
+            className="flex items-center bg-factus-primary text-white gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all hover:bg-factus-primary-hover disabled:opacity-30"
           >
-            ✕ Nuevo
+            <Plus className="h-3.5 w-3.5" />
+            Nueva
           </button>
         )}
       </header>
@@ -264,9 +277,9 @@ export function CoPilotChat() {
         {loaded &&
           messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)}
         {isLoading && (
-          <div className="flex items-center gap-2 px-4 text-sm text-content-tertiary">
-            <span className="h-2 w-2 animate-bounce rounded-full bg-factus-accent/60" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-factus-accent/40 [animation-delay:0.15s]" />
+          <div className="flex items-center gap-1.5 pl-1 pt-1">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-factus-accent/70 [animation-delay:0s]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-factus-accent/45 [animation-delay:0.15s]" />
             <span className="h-2 w-2 animate-bounce rounded-full bg-factus-accent/20 [animation-delay:0.3s]" />
           </div>
         )}
@@ -275,21 +288,31 @@ export function CoPilotChat() {
 
       {/* ── Input ─────────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="px-4 py-3 mb-3">
-        <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-surface-input px-3 py-2 transition-colors focus-within:border-factus-accent/40 focus-within:ring-1 focus-within:ring-factus-accent/20">
-          <input
-            type="text"
+        <div className="flex items-start gap-2 rounded-xl border border-line-subtle bg-surface-input px-3 py-2 transition-colors focus-within:border-factus-accent/40 focus-within:ring-1 focus-within:ring-factus-accent/20">
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim() && !isLoading) {
+                  const form = e.currentTarget.form;
+                  if (form) form.requestSubmit();
+                }
+              }
+            }}
             placeholder="Escribí tu consulta..."
             disabled={isLoading}
-            className="flex-1 bg-transparent text-sm text-content-primary placeholder-content-tertiary outline-none disabled:opacity-50"
+            rows={1}
+            className="flex-1 resize-none bg-transparent text-sm text-content-primary placeholder-content-tertiary/70 outline-none disabled:opacity-50 scrollbar-custom py-2.5"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="flex h-7 w-7 items-center justify-center rounded-lg bg-factus-primary text-white transition-colors hover:bg-factus-primary-hover disabled:opacity-40"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-factus-primary text-white transition-colors hover:bg-factus-primary-hover disabled:opacity-40"
           >
-            <SendHorizonal className="h-3.5 w-3.5" />
+            <SendHorizonal className="h-6 w-6" />
           </button>
         </div>
       </form>
