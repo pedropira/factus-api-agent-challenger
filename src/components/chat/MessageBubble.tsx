@@ -28,18 +28,18 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             </div>
             <div>
               <h2 className="text-lg font-semibold tracking-tight text-content-primary">
-                Agente Factus
+                Factus-API Agent
               </h2>
               <p className="text-xs text-content-tertiary">
-                Facturación Electrónica · DIAN
+                Facturación Electrónica · Factus Challenge
               </p>
             </div>
           </div>
 
           {/* Description */}
           <p className="mb-4 text-sm leading-relaxed text-content-secondary">
-            ¡Hola! Soy tu agente de facturación electrónica colombiana.
-            Estas son algunas cosas que puedo hacer por vos:
+            ¡Hola! Soy tu agente de facturación electrónica colombiana. Estas
+            son algunas cosas que puedo hacer por vos:
           </p>
 
           {/* Examples grid */}
@@ -60,9 +60,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </div>
 
           {/* Footer */}
-          <p className="text-sm text-content-tertiary">
-            ¿En qué te ayudo hoy?
-          </p>
+          <p className="text-sm text-content-tertiary">¿En qué te ayudo hoy?</p>
         </div>
       </div>
     );

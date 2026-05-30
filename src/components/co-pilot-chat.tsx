@@ -5,13 +5,14 @@ import { MessageBubble } from "@/components/chat/MessageBubble";
 import { createChatStorage } from "@/lib/chat/storage";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useWorkspace } from "@/context/workspace-context";
-import { Bot, SendHorizonal, Sparkles } from "lucide-react";
+import { SendHorizonal, Sparkles } from "lucide-react";
 import type { ChatMessage } from "@/lib/types";
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content: "¡Hola! Soy tu agente de facturación electrónica. ¿En qué te ayudo hoy?",
+  content:
+    "¡Hola! Soy tu agente de facturación electrónica. ¿En qué te ayudo hoy?",
 };
 
 function parseSSELine(line: string): string | null {
@@ -232,16 +233,12 @@ export function CoPilotChat() {
       {/* ── Header ────────────────────────────────────────────────────── */}
       <header className="flex items-center justify-between border-b border-line-default px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-factus-primary/20">
-            <Bot className="h-4 w-4 text-factus-primary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-elevated">
+            <Sparkles className="h-4.5 w-4.5 text-factus-accent" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold tracking-tight text-content-primary">
-              Agente Factus
-            </h1>
-            <p className="flex items-center gap-1 text-[10px] text-content-tertiary">
-              <Sparkles className="h-3 w-3 text-factus-accent" />
-              Gemini 1.5 Flash · Facturación Electrónica
+            <p className="flex items-center gap-1 text-[12px] text-content-tertiary uppercase tracking-wide">
+              gemini-2.5-flash-lite · Facturación Electrónica
             </p>
           </div>
         </div>
@@ -265,9 +262,7 @@ export function CoPilotChat() {
           </p>
         )}
         {loaded &&
-          messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
-          ))}
+          messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)}
         {isLoading && (
           <div className="flex items-center gap-2 px-4 text-sm text-content-tertiary">
             <span className="h-2 w-2 animate-bounce rounded-full bg-factus-accent/60" />
