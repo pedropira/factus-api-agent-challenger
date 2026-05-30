@@ -265,7 +265,7 @@ export function EntityWorkspace() {
               {columns.map((col) => (
                 <th
                   key={col}
-                  className="px-2 py-1.5 text-left font-medium text-content-tertiary uppercase tracking-wider"
+                  className="px-2 py-1.5 text-left font-mono font-medium text-content-tertiary uppercase tracking-wider"
                 >
                   {col === "reference_code"
                     ? "Ref."
@@ -331,7 +331,7 @@ export function EntityWorkspace() {
                   return (
                     <td
                       key={col}
-                      className="max-w-[140px] truncate px-2 py-1.5 text-content-secondary"
+                      className="max-w-[140px] truncate px-2 py-1.5 font-mono text-content-secondary"
                       title={display}
                     >
                       {truncated}
@@ -366,7 +366,7 @@ export function EntityWorkspace() {
                   key={tmpl.label}
                   type="button"
                   onClick={() => setChatInputValue(tmpl.prompt)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-subtle bg-surface-elevated px-2.5 py-1.5 text-xs font-medium text-content-secondary transition-all duration-150 hover:border-factus-primary/40 hover:text-factus-primary hover:bg-factus-primary/5"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-subtle bg-surface-elevated px-2.5 py-1.5 text-xs font-mono font-medium text-content-secondary transition-all duration-150 hover:border-factus-primary/40 hover:text-factus-primary hover:bg-factus-primary/5"
                 >
                   {tmpl.label}
                 </button>

@@ -86,7 +86,7 @@ export function Sidebar() {
                   isActive ? "text-factus-primary" : "text-content-tertiary",
                 )}
               />
-              <span>{item.label}</span>
+              <span className="font-mono">{item.label}</span>
               {isActive && (
                 <span className="ml-auto h-1.5 w-1.5 rounded-full bg-factus-primary" />
               )}

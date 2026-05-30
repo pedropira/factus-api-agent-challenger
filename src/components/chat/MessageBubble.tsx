@@ -49,10 +49,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 key={ex.text}
                 className="rounded-xl border border-line-subtle bg-surface-elevated/50 px-3 py-2.5 text-left transition-all duration-150 hover:border-factus-primary/30 hover:bg-factus-primary/5"
               >
-                <p className="text-xs font-medium text-content-primary">
+                <p className="text-xs font-mono font-medium text-content-primary">
                   {ex.text}
                 </p>
-                <p className="mt-0.5 text-[10px] text-content-tertiary">
+                <p className="mt-0.5 text-[10px] font-mono text-content-tertiary">
                   {ex.hint}
                 </p>
               </div>
