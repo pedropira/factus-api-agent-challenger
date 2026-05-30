@@ -74,7 +74,7 @@ export function Sidebar() {
               type="button"
               onClick={() => setCurrentEntity(item.entity)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2 my-3 text-sm font-medium transition-all duration-150",
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 my-3 text-sm font-mono transition-all duration-150",
                 isActive
                   ? "bg-factus-primary/15 text-factus-primary shadow-sm border border-factus-primary/20"
                   : "text-content-tertiary hover:bg-overlay-hover hover:text-content-primary",
@@ -86,7 +86,7 @@ export function Sidebar() {
                   isActive ? "text-factus-primary" : "text-content-tertiary",
                 )}
               />
-              <span className="font-mono">{item.label}</span>
+              <span>{item.label}</span>
               {isActive && (
                 <span className="ml-auto h-1.5 w-1.5 rounded-full bg-factus-primary" />
               )}
@@ -97,8 +97,8 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-line-default px-3 py-3 space-y-2">
-        {/* Theme Toggle — segmented control como switch visual */}
-        <div className="flex items-center rounded-xl bg-surface-elevated p-0.5 shadow-inner">
+        {/* Theme Toggle — segmented control */}
+        <div className="flex items-center rounded-xl bg-surface-elevated p-0.5 shadow-inner mb-5">
           <button
             type="button"
             onClick={() => theme !== "light" && toggleTheme()}
