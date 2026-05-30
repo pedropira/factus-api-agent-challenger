@@ -255,7 +255,7 @@ export function CoPilotChat() {
       </header>
 
       {/* ── Messages ──────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="scrollbar-custom flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {!loaded && (
           <p className="pt-8 text-center text-xs italic text-content-tertiary">
             Cargando conversación...
@@ -274,10 +274,7 @@ export function CoPilotChat() {
       </div>
 
       {/* ── Input ─────────────────────────────────────────────────────── */}
-      <form
-        onSubmit={handleSubmit}
-        className="border-t border-line-default p-3"
-      >
+      <form onSubmit={handleSubmit} className="px-4 py-3 mb-3">
         <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-surface-input px-3 py-2 transition-colors focus-within:border-factus-accent/40 focus-within:ring-1 focus-within:ring-factus-accent/20">
           <input
             type="text"

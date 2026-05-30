@@ -39,7 +39,7 @@ export function normalizeParts(
  * Keep only the last N full exchanges (user → assistant pairs).
  * Ensures we never cut mid-exchange.
  */
-const MAX_EXCHANGES = 4;
+const MAX_EXCHANGES = 8;
 
 export function trimHistory(
   msgs: UIMessage[],

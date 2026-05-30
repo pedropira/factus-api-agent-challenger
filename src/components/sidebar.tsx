@@ -63,7 +63,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav Items */}
-      <div className="flex-1 gap-0.5 overflow-y-auto px-3 py-2">
+      <div className="scrollbar-custom flex-1 gap-0.5 overflow-y-auto px-3 py-2">
         {SIDEBAR_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = currentEntity === item.entity;

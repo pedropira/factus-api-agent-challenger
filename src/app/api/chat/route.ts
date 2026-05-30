@@ -7,7 +7,7 @@
 import { runChatPipeline } from "@/lib/ai/chat-pipeline";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export const maxDuration = 30;
+export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {

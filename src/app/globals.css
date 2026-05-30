@@ -256,3 +256,29 @@
       box-shadow 0.2s ease;
   }
 }
+
+/* ── Custom scrollbar ──────────────────────────────────────────────────── */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-subtle) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: var(--line-subtle);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: var(--line-default);
+}

@@ -389,7 +389,7 @@ export function EntityWorkspace() {
             </div>
 
             {/* Table area — only this scrolls */}
-            <div className="overflow-y-auto min-h-0 flex-1 px-3 pb-3">
+            <div className="scrollbar-custom overflow-y-auto min-h-0 flex-1 px-3 pb-3">
               {renderTable()}
             </div>
           </section>
