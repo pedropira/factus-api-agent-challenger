@@ -7,7 +7,8 @@ RUN apk add --no-cache openssl
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+# --ignore-scripts: skip postinstall (prisma generate) because prisma/ schema isn't here yet
+RUN npm ci --ignore-scripts
 
 # ── Builder ───────────────────────────────────────────────────────────
 FROM base AS builder
