@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "Factus Agent — Facturación Electrónica",
   description:
     "Agente de IA para facturación electrónica colombiana vía Factus DIAN API",
+  icons: {
+    icon: "/robot.svg",
+    apple: "/robot.svg",
+  },
 };
 
 export default function RootLayout({
