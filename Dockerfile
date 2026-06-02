@@ -13,9 +13,17 @@ RUN npm ci --ignore-scripts
 # ── Builder ───────────────────────────────────────────────────────────
 FROM base AS builder
 WORKDIR /app
+
+# Build-time args — NEXT_PUBLIC vars MUST be available at build time.
+# Render passes env vars as --build-arg automatically.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate && npm run build
+RUN NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+    NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY}" \
+    npx prisma generate && npm run build
 
 # ── Runner ────────────────────────────────────────────────────────────
 FROM base AS runner
