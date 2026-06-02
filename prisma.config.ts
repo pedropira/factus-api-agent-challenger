@@ -1,12 +1,11 @@
-import { defineConfig, env } from "@prisma/config";
-
-type Env = {
-  DATABASE_URL: string;
-};
+import { defineConfig } from "@prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: env<Env>("DATABASE_URL"),
+    // Fallback allows prisma generate to work during Docker build
+    // where DATABASE_URL is not yet available. Actual DB operations
+    // (db push, migrate) require the real DATABASE_URL at runtime.
+    url: process.env.DATABASE_URL ?? "postgresql://placeholder:placeholder@localhost:5432/postgres",
   },
 });
