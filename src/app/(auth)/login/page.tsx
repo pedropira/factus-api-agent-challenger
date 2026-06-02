@@ -8,7 +8,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center py-12">
-          <div className="text-sm text-zinc-500">Cargando...</div>
+          <div className="text-sm text-content-tertiary">Cargando...</div>
         </div>
       }
     >

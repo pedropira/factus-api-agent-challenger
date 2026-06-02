@@ -64,7 +64,13 @@ async function queryRecords(type: RecordType) {
       {},
     );
     const parsed = JSON.parse(raw[0].text);
-    const docs: Record<string, unknown>[] = parsed?.data?.data?.data ?? [];
+    // Different MCP tools return data at different nesting levels:
+    //   invoices/credit_notes → parsed.data.data.data (array)
+    //   establishments       → parsed.data (direct array)
+    const docs: Record<string, unknown>[] =
+      (Array.isArray(parsed?.data)
+        ? parsed.data
+        : parsed?.data?.data?.data) ?? [];
     // Establishments and other non-document entities don't have is_validated/errors
     if (type === "establishments") {
       return docs.map((doc, i) => ({
@@ -128,6 +134,14 @@ function normalizeDoc(type: RecordType) {
       customer_identification:
         (doc.customer as Record<string, unknown> | undefined)?.identification as string
         ?? null,
+      // DS/NA use "provider" instead of "customer"
+      provider_name:
+        (doc.provider as Record<string, unknown> | undefined)?.names as string
+        ?? null,
+      provider_identification:
+        (doc.provider as Record<string, unknown> | undefined)?.identification as string
+        ?? null,
+      correction_concept: doc.correction_concept ?? null,
       payment_details: doc.payment_details ?? null,
       items: doc.items ?? null,
       cufe: doc.cufe ?? null,

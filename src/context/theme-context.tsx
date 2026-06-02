@@ -19,12 +19,10 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 
 const STORAGE_KEY = "factus-agent-theme";
 
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-
+function resolveTheme(): Theme {
+  // Only call this on the client — never during SSR
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored === "light" || stored === "dark") return stored;
-
   return window.matchMedia("(prefers-color-scheme: light)").matches
     ? "light"
     : "dark";
@@ -40,16 +38,19 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme | null>(null);
 
-  // Apply theme on mount
+  // Read real theme from localStorage/matchMedia after mount
   useEffect(() => {
-    applyTheme(theme);
+    const t = resolveTheme();
+    applyTheme(t);
+    setTheme(t);
   }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => {
-      const next: Theme = prev === "dark" ? "light" : "dark";
+      const current: Theme = prev ?? resolveTheme();
+      const next: Theme = current === "dark" ? "light" : "dark";
       localStorage.setItem(STORAGE_KEY, next);
       applyTheme(next);
       return next;
@@ -57,7 +58,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: theme ?? "dark", toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

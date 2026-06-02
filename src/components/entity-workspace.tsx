@@ -28,8 +28,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [],
     tools: [],
     dianGuide: [
-      "Panel general de facturación electrónica",
-      "Seleccioná una entidad del menú lateral para gestionar recursos",
+      "💡 Usá lenguaje natural — decime qué querés hacer y lo ejecuto",
+      "📦 Primero creá productos antes de emitir facturas",
+      "👤 Los clientes se crean con CC o NIT + dígito de verificación",
+      "📄 Las facturas necesitan un rango de numeración activo",
+      "🔍 Siempre buscá antes de crear para evitar duplicados",
     ],
   },
   customers: {
@@ -37,13 +40,20 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "➕ Registrar Cliente",
-        prompt:
-          "Creá un nuevo cliente en el sistema. Primero buscá si ya existe por NIT o CC. Si no existe, pedime los datos: tipo de identificación (CC o NIT), número, nombre o razón social, email, dirección y teléfono. No inventes datos.",
+        prompt: `Creá un nuevo cliente en el sistema. Con los siguientes datos uno por uno y no inventes información:
+
+- Tipo de identificación (CC / NIT / NIT + DV): __________
+- Número de identificación: __________
+- Nombre(s) o Razón Social: __________
+- Email: __________
+- Dirección: __________
+- Teléfono: __________
+- Municipio: __________`,
       },
       {
         label: "🔍 Buscar Cliente",
-        prompt:
-          "Buscá un cliente existente por NIT, CC, nombre o email. Si hay múltiples resultados, mostralos y pedime que elija cuál es el correcto.",
+        prompt: `Buscá un cliente existente por NIT, CC, nombre o email. Si hay múltiples resultados, mostralos y pedime que elija cuál es el correcto.
+          Parametro de búsqueda: __________`,
       },
     ],
     tools: [
@@ -52,10 +62,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_customer", label: "Detalle Cliente" },
     ],
     dianGuide: [
-      "NIT debe incluir DV (dígito de verificación)",
-      "CC para personas naturales colombianas",
-      "Email obligatorio para envío de facturas electrónicas",
-      "Municipio DIAN requerido (ej: 11001 = Bogotá)",
+      "👤 CC para persona natural, NIT + DV para persona jurídica",
+      "📧 El email es obligatorio para enviar facturas electrónicas",
+      "📍 Decime el nombre del municipio y lo resuelvo automáticamente",
+      "🔍 Buscá siempre por NIT/CC antes de crear un cliente nuevo",
+      "🏷️ trade_name es el nombre comercial, company es la razón social",
     ],
     recordType: "customers",
   },
@@ -64,13 +75,19 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "➕ Registrar Producto",
-        prompt:
-          "Creá un nuevo producto. Necesito: código de referencia único, nombre del producto, precio CON IVA incluido (valor bruto), tasa de IVA (19% estándar, 5% o 0%), unidad de medida (70 = Unidad, 94 = Servicio) y si está exento de IVA. No inventes códigos.",
+        prompt: `Creá un nuevo producto en el catálogo. Con los siguientes datos uno por uno y no inventes información:
+
+- Código de referencia único (ej: PROD-001): __________
+- Nombre del producto: __________
+- Precio CON IVA incluido: __________
+- Tasa de IVA (19% / 5% / 0%): __________
+- Unidad de medida (Unidad / Servicio / Hora): __________
+- ¿Está exento de IVA? (sí / no): __________`,
       },
       {
         label: "🔍 Buscar Producto",
-        prompt:
-          "Buscá un producto por nombre, código de referencia o parte del nombre. Mostrá los resultados con código de referencia, nombre, precio con IVA y tasa de IVA.",
+        prompt: `Buscá un producto por nombre, código de referencia o parte del nombre. Mostrá los resultados con código de referencia, nombre, precio con IVA y tasa de IVA.
+          Parametro de búsqueda: __________`,
       },
     ],
     tools: [
@@ -79,10 +96,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_product_by_code", label: "Detalle Producto" },
     ],
     dianGuide: [
-      "Precio SIEMPRE con IVA incluido (valor bruto)",
-      "Código de referencia único por producto",
-      "Tasa de IVA: 19%, 5%, 0% o exento",
-      "standard_code_id: 1 = código propio, 2 = UNSPSC",
+      "💰 El precio es CON IVA incluido (valor bruto, no base)",
+      "🔑 Código de referencia único por producto — ej: PROD-001",
+      "📊 IVA estándar 19%, también 5% o 0% (excluido)",
+      "📏 unit_measure_id: 70 = Unidad, 94 = Servicios, 98 = Horas",
+      "🏷️ standard_code_id: 1 = código propio, 2 = UNSPSC",
     ],
     recordType: "products",
   },
@@ -91,18 +109,26 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "📄 Factura Contado",
-        prompt:
-          "Emití una factura electrónica de contado. Buscá el cliente por nombre o NIT, los productos por nombre o referencia, obtené el rango de numeración activo con get_default_numbering_range y creala con create_invoice_with_numbering usando método de pago 10 (efectivo) y forma de pago 1 (contado).",
+        prompt: `Emití una factura electrónica de contado. Con los siguientes datos uno por uno y no inventes información:
+
+- Cliente (nombre o NIT): __________
+- Producto(s) (nombre o código): __________
+- Cantidad(es): __________
+- Método de pago (efectivo / transferencia / tarjeta): __________`,
       },
       {
         label: "💳 Factura Electrónico",
-        prompt:
-          "Emití una factura con pago electrónico (tarjeta débito/crédito o transferencia). Buscá el cliente y los productos. IMPORTANTE: si el total supera ~$4,700,000 COP (100 UVT) usá create_invoice (sin numbering) pasando el customer como objeto completo para evitar el error de ReteGMF 4x1000. Si es menor, usá create_invoice_with_numbering normal.",
+        prompt: `Emití una factura electrónica con pago por transferencia o tarjeta. Con los siguientes datos uno por uno y no inventes información:
+
+- Cliente (nombre o NIT): __________
+- Producto(s) (nombre o código): __________
+- Cantidad(es): __________
+- Método de pago (transferencia / tarjeta débito / tarjeta crédito): __________`,
       },
       {
         label: "🔍 Buscar Factura",
-        prompt:
-          "Buscá una factura ya emitida por número de factura (bill_number) o código de referencia. Mostrá el estado DIAN, el total, la fecha de emisión y si está aceptada o pendiente.",
+        prompt: `Buscá una factura ya emitida por número de factura (bill_number) o código de referencia. Mostrá el estado DIAN, el total, la fecha de emisión y si está aceptada o pendiente.
+          Parametro de búsqueda: __________`,
       },
     ],
     tools: [
@@ -112,11 +138,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_default_numbering_range", label: "Rango Numeración" },
     ],
     dianGuide: [
-      "Contado ≤ $4,700K → create_invoice_with_numbering",
-      "Electrónico > $4,700K → create_invoice (evita ReteGMF)",
-      "Obtener numbering_range_id vía get_default_numbering_range",
-      "Reference_code único por factura",
-      "La factura se valida con DIAN automáticamente",
+      "📄 Necesito: cliente + productos + rango de numeración activo",
+      "💳 Contado ≤ $4.7M → factura normal con numbering",
+      "💳 Electrónico > $4.7M → factura sin numbering (evita ReteGMF 4x1000)",
+      "🔢 reference_code único por factura — ej: FAC-001-2026",
+      "✅ La factura se valida con DIAN automáticamente al crearla",
     ],
     recordType: "invoices",
   },
@@ -125,13 +151,17 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "📝 Crear Nota Crédito",
-        prompt:
-          "Creá una nota crédito sobre una factura ya emitida y aceptada por DIAN. Primero buscá la factura por número (bill_number) o referencia, confirmá conmigo el concepto de corrección (1 = devolución parcial, 2 = anulación) y los items a incluir.",
+        prompt: `Creá una nota crédito para corregir una factura ya emitida. Con los siguientes datos uno por uno y no inventes información:
+
+- Número de factura a corregir (bill_number): __________
+- Concepto (1 = devolución, 2 = anulación, 3 = rebaja): __________
+- Producto(s) a corregir (nombre o código): __________
+- Cantidad(es) a corregir: __________`,
       },
       {
         label: "🔍 Buscar Nota Crédito",
-        prompt:
-          "Buscá una nota crédito existente por código de referencia o número. Mostrá el estado, el total y la factura asociada.",
+        prompt: `Buscá una nota crédito existente por código de referencia o número. Mostrá el estado, el total y la factura asociada.
+          Parametro de búsqueda: __________`,
       },
     ],
     tools: [
@@ -140,9 +170,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_credit_note", label: "Detalle Nota Crédito" },
     ],
     dianGuide: [
-      "Correction_concept_code: 1 = Devolución, 2 = Anulación",
-      "Requiere bill_number de factura validada",
-      "Solo aplica a facturas que ya fueron aceptadas por DIAN",
+      "📝 Las notas crédito CORRIGEN facturas ya aceptadas por DIAN",
+      "🔢 Necesito el bill_number de la factura a corregir (no el reference_code)",
+      "📋 Conceptos: 1 = Devolución parcial, 2 = Anulación total, 3 = Rebaja",
+      "📎 Los mismos items de la factura original con cantidades a corregir",
+      "🔍 Verificá que la factura esté ACEPTADA antes de crear la NC",
     ],
     recordType: "credit_notes",
   },
@@ -151,13 +183,30 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "📄 Crear Doc. Soporte",
-        prompt:
-          "Creá un documento soporte electrónico (DS). Buscá primero si el proveedor ya existe en el sistema, si no, pedime los datos completos. Necesito: items, forma de pago y el rango de numeración para DS.",
+        prompt: `Creá un documento soporte electrónico (DS) para una compra. Con los siguientes datos uno por uno y no inventes información:
+
+Proveedor:
+- Tipo de identificación (CC / NIT): __________
+- Número de identificación: __________
+- Nombre o Razón Social: __________
+- Dirección: __________
+- Municipio (ej: Bogotá, Medellín): __________
+- Email: __________
+
+Producto(s):
+- Nombre o código: __________
+- Cantidad: __________
+- Valor unitario CON IVA incluido: __________
+- Tasa de IVA (19% / 5% / 0%): __________
+- Unidad de medida (Unidad / Servicio / Hora): __________
+
+Pago:
+- Método de pago (efectivo / transferencia / tarjeta): __________`,
       },
       {
         label: "🔍 Buscar Doc. Soporte",
-        prompt:
-          "Buscá un documento soporte por código de referencia o número. Mostrá el estado DIAN, total y fecha.",
+        prompt: `Buscá un documento soporte por código de referencia o número. Mostrá el estado DIAN, total y fecha.
+          Parametro de búsqueda: __________`,
       },
     ],
     tools: [
@@ -166,9 +215,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_support_document", label: "Detalle DS" },
     ],
     dianGuide: [
-      "DS aplica a compras a no obligados a facturar",
-      "Requiere datos completos del proveedor",
-      "Numeración independiente de facturas",
+      "📄 DS es para compras a proveedores NO obligados a facturar electrónicamente",
+      "👤 Proveedor necesita: tipo doc, NIT, nombre, dirección, municipio, email",
+      "🔢 La numeración la asigna Factus — no necesito rango local",
+      "💳 Los montos de pago son OBLIGATORIOS (a diferencia de facturas)",
+      "📦 Productos: nombre, cantidad, valor CON IVA, tasa IVA, unidad medida",
     ],
     recordType: "support_documents",
   },
@@ -177,13 +228,18 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "📝 Crear Nota Ajuste",
-        prompt:
-          "Creá una nota de ajuste sobre un documento soporte ya emitido y aceptado. Primero obtené el DS a corregir por número o referencia, confirmá conmigo el concepto de ajuste y los items. No confundir con nota crédito (aplica a facturas, no a DS).",
+        prompt: `Creá una nota de ajuste para corregir un documento soporte ya emitido. Con los siguientes datos uno por uno y no inventes información:
+
+- Número del documento soporte a corregir: __________
+- Concepto de ajuste: __________
+- Producto(s) a ajustar (nombre o código): __________
+- Cantidad(es) ajustada(s): __________
+- Motivo del ajuste: __________`,
       },
       {
         label: "🔍 Buscar Nota Ajuste",
-        prompt:
-          "Buscá una nota de ajuste por código de referencia o número. Mostrá el estado, total y documento asociado.",
+        prompt: `Buscá una nota de ajuste por código de referencia o número. Mostrá el estado, total y documento asociado.
+          Parametro de búsqueda: __________`,
       },
     ],
     tools: [
@@ -192,9 +248,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_adjustment_note", label: "Detalle Nota Ajuste" },
     ],
     dianGuide: [
-      "Corrige documentos soporte (DS) validados",
-      "Correction_concept_code según la DIAN",
-      "No confundir con Notas Crédito (aplica a facturas)",
+      "🔄 Corrige Documentos Soporte (DS), NO facturas — eso es Nota Crédito",
+      "🔗 Necesito el número del DS a corregir (el asignado por Factus)",
+      "📋 correction_concept_code: según la DIAN para el tipo de ajuste",
+      "📎 Incluí SOLO los items que están siendo ajustados, no todos",
+      "📝 observation es obligatorio — explicá el motivo del ajuste",
     ],
     recordType: "adjustment_notes",
   },
@@ -203,8 +261,13 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     templates: [
       {
         label: "🏢 Registrar Establecimiento",
-        prompt:
-          "Registrá un nuevo establecimiento comercial. Necesito: nombre del establecimiento, dirección completa, teléfono, email y código de municipio DIAN (ej: 11001 para Bogotá). El establecimiento principal ya existe, esto es para sucursales adicionales.",
+        prompt: `Registrá un nuevo establecimiento comercial (sucursal). Con los siguientes datos uno por uno y no inventes información:
+
+- Nombre del establecimiento: __________
+- Dirección completa: __________
+- Teléfono: __________
+- Email: __________
+- Municipio: __________`,
       },
     ],
     tools: [
@@ -213,9 +276,11 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
       { mcpName: "get_establishment", label: "Detalle Establecimiento" },
     ],
     dianGuide: [
-      "Código de municipio DIAN obligatorio (ej: 11001)",
-      "El establecimiento principal se crea automáticamente",
-      "Usar para sucursales o puntos de venta adicionales",
+      "🏢 Creá sucursales o puntos de venta adicionales",
+      "📍 Decime el nombre del municipio y lo resuelvo automáticamente",
+      "📞 Teléfono y email recomendados para datos fiscales",
+      "🏗️ El establecimiento principal se crea automáticamente",
+      "📋 Se usa en facturación para indicar punto de emisión",
     ],
     recordType: "establishments",
   },
@@ -255,13 +320,13 @@ const TABLE_COLUMNS: Record<string, { key: string; label: string }[]> = {
   ],
   support_documents: [
     { key: "number", label: "Número" },
-    { key: "customer_name", label: "Proveedor" },
+    { key: "provider_name", label: "Proveedor" },
     { key: "total", label: "Total" },
     { key: "status", label: "Estado" },
   ],
   adjustment_notes: [
     { key: "number", label: "Número" },
-    { key: "customer_name", label: "Proveedor" },
+    { key: "provider_name", label: "Proveedor" },
     { key: "total", label: "Total" },
     { key: "status", label: "Estado" },
   ],
@@ -504,7 +569,7 @@ export function EntityWorkspace() {
               {/* Right (2 cols): Key Data for Creation */}
               <div className="col-span-2">
                 <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-content-tertiary/70">
-                  Datos Clave
+                  Tips de Creación
                 </h4>
                 <ul className="space-y-1">
                   {config.dianGuide.length === 0 ? (

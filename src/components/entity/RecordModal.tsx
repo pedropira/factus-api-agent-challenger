@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { X, FileText, User, Package, Receipt } from "lucide-react";
+import { X, FileText, User, Package, Receipt, Building2 } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -38,6 +38,7 @@ const DOC_TYPES = new Set([
 ]);
 
 const TYPE_LABEL: Record<string, string> = {
+  establishments: "Establecimiento",
   customers: "Cliente",
   products: "Producto",
   invoices: "Factura",
@@ -47,6 +48,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const TYPE_ICON: Record<string, typeof User> = {
+  establishments: Building2,
   customers: User,
   products: Package,
 };
@@ -63,6 +65,13 @@ const PAYMENT_METHODS: Record<string, string> = {
 };
 
 const TYPE_FIELDS: Record<string, FieldDef[]> = {
+  establishments: [
+    { key: "name", label: "Nombre", wide: true },
+    { key: "address", label: "Dirección", wide: true },
+    { key: "phone_number", label: "Teléfono" },
+    { key: "email", label: "Email" },
+    { key: "municipality_id", label: "Municipio" },
+  ],
   customers: [
     { key: "identification", label: "Identificación" },
     { key: "dv", label: "DV" },
@@ -105,6 +114,8 @@ const TYPE_FIELDS: Record<string, FieldDef[]> = {
     { key: "bill_number", label: "Número NC" },
     { key: "status", label: "Estado", format: "status" },
     { key: "customer_name", label: "Cliente", wide: true },
+    { key: "customer_identification", label: "ID Cliente" },
+    { key: "correction_concept", label: "Concepto", wide: true },
     { key: "total", label: "Total", format: "currency" },
     { key: "cufe", label: "CUFE", wide: true },
     {
@@ -121,8 +132,15 @@ const TYPE_FIELDS: Record<string, FieldDef[]> = {
     { key: "reference_code", label: "Referencia" },
     { key: "number", label: "Número DS" },
     { key: "status", label: "Estado", format: "status" },
-    { key: "customer_name", label: "Proveedor", wide: true },
+    { key: "provider_name", label: "Proveedor", wide: true },
+    { key: "provider_identification", label: "ID Proveedor" },
     { key: "total", label: "Total", format: "currency" },
+    {
+      key: "payment_details",
+      label: "Método de Pago",
+      format: "payment",
+      wide: true,
+    },
     { key: "items", label: "Items", format: "items", wide: true },
     { key: "observation", label: "Observación", wide: true },
     { key: "created_at", label: "Creado", format: "date" },
@@ -131,8 +149,15 @@ const TYPE_FIELDS: Record<string, FieldDef[]> = {
     { key: "reference_code", label: "Referencia" },
     { key: "number", label: "Número NA" },
     { key: "status", label: "Estado", format: "status" },
-    { key: "customer_name", label: "Proveedor", wide: true },
+    { key: "provider_name", label: "Proveedor", wide: true },
+    { key: "provider_identification", label: "ID Proveedor" },
     { key: "total", label: "Total", format: "currency" },
+    {
+      key: "payment_details",
+      label: "Método de Pago",
+      format: "payment",
+      wide: true,
+    },
     { key: "items", label: "Items", format: "items", wide: true },
     { key: "observation", label: "Observación", wide: true },
     { key: "created_at", label: "Creado", format: "date" },
@@ -504,7 +529,9 @@ export function RecordModal({ open, onClose, record, type }: RecordModalProps) {
                 ? `Nro: ${record.number}`
                 : record.reference_code
                   ? `Ref: ${record.reference_code}`
-                  : " "}
+                  : record.name
+                    ? String(record.name)
+                    : " "}
           </div>
           <div className="flex items-center gap-2">
             {dlError && (

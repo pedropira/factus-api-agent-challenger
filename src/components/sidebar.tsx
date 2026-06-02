@@ -152,7 +152,7 @@ export function Sidebar() {
         </button>
 
         <p className="text-[10px] text-content-tertiary/60 leading-relaxed px-1">
-          Conectado a Factus API · DIAN
+          Conectado a Factus API · HALLTEC
         </p>
       </div>
     </nav>

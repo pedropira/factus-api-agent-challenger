@@ -64,11 +64,17 @@ export function ChatShell() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const messagesRef = useRef(messages);
   const storageRef = useRef(createChatStorage());
   const { user } = useAuth();
-  messagesRef.current = messages;
+
+  // Sync messages ref AFTER render — mutating during render
+  // confuses React 19's reconciler and can cause removeChild errors.
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // ── Re-create storage when auth state changes ─────────────────────────
   useEffect(() => {
@@ -84,6 +90,16 @@ export function ChatShell() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // ── Auto-resize textarea — via useEffect, NOT during onChange ────────
+  // Mutating e.target.style during a synthetic event confuses React 19's
+  // reconciler and can cause removeChild / insertBefore errors.
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = `${Math.min(ta.scrollHeight, 200)}px`;
+  }, [input]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -271,12 +287,10 @@ export function ChatShell() {
       >
         <div className="flex gap-2">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
-              // Auto-resize: reset height, then grow to scrollHeight
-              e.target.style.height = "auto";
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

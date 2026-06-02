@@ -66,11 +66,26 @@ export async function runChatPipeline(
     system: systemPrompt,
     messages: await convertToModelMessages(trimmed),
     tools: mcpToolRegistry,
+    // Stop after 5 rounds of tool calls to prevent infinite loops.
+    // The model MUST call tools to answer — if it produces 5 steps
+    // with zero tool calls, that's a hallucination signal.
     stopWhen: stepCountIs(5),
-    onStepFinish: ({ toolResults, text }) => {
+    onError: ({ error }) => {
+      console.error("[Chat] Error:", error);
+    },
+    onStepFinish: ({ toolResults, toolCalls, text, stepNumber }) => {
+      const calledTools = toolCalls.map((tc) => `${tc.toolName}`);
       console.log(
-        `[Chat] Step finished — tools: ${toolResults.length}, text: ${text?.length ?? 0} chars`,
+        `[Chat] Step ${stepNumber} — tools called: ${calledTools.length}`,
       );
+      if (calledTools.length > 0) {
+        console.log(`  tools: [${calledTools.join(", ")}]`);
+        console.log(`  results: ${toolResults.length} successful`);
+      } else {
+        console.warn(
+          `[Chat] ⚠️  Step ${stepNumber} produced NO tool calls — possible hallucination risk`,
+        );
+      }
     },
   });
 }
