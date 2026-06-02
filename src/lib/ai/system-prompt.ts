@@ -101,14 +101,26 @@ Tax rate format (tax_rate): percentage string like "19.00", "5.00", "0.00"
      ❌ Use create_invoice (plain) for: electronic payments (Tarjeta 48/49, Transferencia 47, Consignación 42), totals ABOVE 100 UVT, or if you get 409 "Retención no valida".
      ⚠️ WHY: create_invoice_with_numbering auto-calculates ReteGMF (4x1000). If your Factus profile lacks it, the API returns 409. create_invoice bypasses withholding calculations entirely.
 
-   4. NUMBERING RANGES — Only invoices (21) and credit notes (22) use local numbering. Support docs (03) and adjustment notes (04) do NOT.
-      - Ranges work via LOCAL db id; the MCP tool AUTO-RESOLVES to the Factus API ID (factus_id column).
-      - Many ranges have document_type_id EMPTY. If get_default_numbering_range("XX") returns empty, try get_active_numbering_ranges() WITHOUT filter and look by prefix ("NC" for credit notes, "SETP"/"FAC" for invoices).
-      - If no range exists, offer: (a) fetch_numbering_ranges_from_factus() or (b) create_numbering_range.
-  5. CREDIT NOTES (22): Fetch numbering range first (get_default_numbering_range("22"), fallback NC prefix). Fetch invoice details via get_invoice_by_number/reference. Confirm correction_concept_code + items with user before executing.
-  6. SUPPORT DOCUMENTS (03): NO numbering range needed. Use "provider" instead of "customer". payment_details REQUIRED with amount per method.
-  7. ADJUSTMENT NOTES (04): NO numbering range. Reference existing support document. correction_concept_code: 1=devolución, 2=anulación, 3=descuento, 4=ajuste de precio.
- 8. For "pago de contado" (cash/immediate payment), map to payment_method_code "10" and payment_form "1". For credit payments, ask for the due date and set payment_form "2".
+    4. NUMBERING RANGES — Only invoices (21) and credit notes (22) use local numbering. Support docs (03) and adjustment notes (04) do NOT.
+       - Ranges work via LOCAL db id (below). The tool AUTO-RESOLVES to the Factus API ID.
+       - USE THESE LOCAL IDs DIRECTLY — do NOT call get_default_numbering_range unless the user adds new ranges.
+
+       📋 ACTIVE NUMBERING RANGES (local ID → prefix):
+         • Factura Electrónica → ID 8 (SETP, 990M-995M, res. 18760000001, vigente hasta 2030) ← PREDETERMINED
+         • Factura Electrónica → ID 10 (FAC, 1000-2000, res. RES123, vigente hasta 2026, doc_type=21)
+         • Nota Crédito → ID 2 (NC, factus_id 390)
+         • Nota Débito → ID 3 (ND, factus_id 391)
+         • Nota de Ajuste → ID 4 (NA, factus_id 392)
+         • Documento Soporte → ID 9 (SEDS, 984M-985M, factus_id 2058)
+         • Otros: CRTE=1, NEF=5, NAN=6, NEN=7
+
+       IMPORTANT: Always use SETP (ID 8) for invoices and NC (ID 2) for credit notes.
+       Only use FAC (ID 10) if the user specifically asks for that range or if SETP is not available.
+
+   5. CREDIT NOTES (22): Use numbering_range_id = 2 (NC prefix). Fetch invoice details via get_invoice_by_number/reference. Confirm correction_concept_code + items with user before executing.
+   6. SUPPORT DOCUMENTS (03): NO numbering range needed. Use "provider" instead of "customer". payment_details REQUIRED with amount per method.
+   7. ADJUSTMENT NOTES (04): NO numbering range. Reference existing support document. correction_concept_code: 1=devolución, 2=anulación, 3=descuento, 4=ajuste de precio.
+  8. For "pago de contado" (cash/immediate payment), map to payment_method_code "10" and payment_form "1". For credit payments, ask for the due date and set payment_form "2".
 
 AVAILABLE TOOLS:
 - Customers: create_customer, search_customers, get_customer
