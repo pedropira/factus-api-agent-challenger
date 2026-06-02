@@ -101,12 +101,18 @@ export async function callMcpTool<T = unknown>(
     return result.content as T;
   };
 
+  let retried = false;
+
   try {
     return await execute();
   } catch (err) {
     const msg = String(err);
-    // Session expired or server cold-started — reset and retry once
-    if (msg.includes("Missing session ID") || msg.includes("session")) {
+    // Session expired or server cold-started — reset and retry ONCE only
+    if (
+      !retried &&
+      (msg.includes("Missing session ID") || msg.includes("session"))
+    ) {
+      retried = true;
       resetMcpClient();
       return await execute();
     }
