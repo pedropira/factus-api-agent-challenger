@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="public/logo-agent.png" alt="Factus MCP Server Logo" width="1000"/>
+</div>
+
 # Factus Agent
 
 **AI-powered Colombian electronic invoicing assistant.** Chat with an AI agent to create invoices, customers, products, and credit notes via the Factus DIAN API.
@@ -24,10 +28,10 @@ Built with Next.js 14+, Vercel AI SDK, Google Gemini 2.5 Flash, and an MCP serve
 
 ### Two data paths — NEVER mix them
 
-| Path | What | Where | Why |
-|------|------|-------|-----|
-| **Chat (MCP)** | Create / search / modify | MCP server → Factus API → DIAN | Single source of truth for operations |
-| **Dashboard (DB)** | Read-only Top 10 tables | Direct Supabase (PostgreSQL) via Prisma | MCP has NO list tools for customers / products |
+| Path               | What                     | Where                                   | Why                                            |
+| ------------------ | ------------------------ | --------------------------------------- | ---------------------------------------------- |
+| **Chat (MCP)**     | Create / search / modify | MCP server → Factus API → DIAN          | Single source of truth for operations          |
+| **Dashboard (DB)** | Read-only Top 10 tables  | Direct Supabase (PostgreSQL) via Prisma | MCP has NO list tools for customers / products |
 
 - Dashboard reads go DIRECTLY to Supabase, NEVER through the MCP server.
 - Chat writes go through the MCP server, NEVER direct to DB.
@@ -84,6 +88,7 @@ Open [http://localhost:3000](http://localhost:3000).
 A `Dockerfile` and `.dockerignore` are already configured for Next.js standalone output.
 
 **Render setup:**
+
 1. Create a new **Web Service**
 2. Connect your GitHub repo
 3. **Runtime:** Docker
@@ -96,13 +101,13 @@ A `Dockerfile` and `.dockerignore` are already configured for Next.js standalone
 
 Set these in Render Dashboard → Environment:
 
-| Key | Value |
-|-----|-------|
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Your Google AI Studio key |
-| `NEXT_PUBLIC_SUPABASE_URL` | https://your-project.supabase.co |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
-| `DATABASE_URL` | postgresql://...?sslmode=require |
-| `NODE_ENV` | production |
+| Key                             | Value                            |
+| ------------------------------- | -------------------------------- |
+| `GOOGLE_GENERATIVE_AI_API_KEY`  | Your Google AI Studio key        |
+| `NEXT_PUBLIC_SUPABASE_URL`      | https://your-project.supabase.co |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key           |
+| `DATABASE_URL`                  | postgresql://...?sslmode=require |
+| `NODE_ENV`                      | production                       |
 
 > **Important:** Because the MCP client uses a singleton (it keeps session state in memory), Render's Web Service model (long-running process) is a better fit than serverless platforms like Vercel.
 
@@ -154,17 +159,17 @@ The MCP server is a **separate** Python project deployed on Render:
 
 ## Available MCP tools
 
-| Category | Tools |
-|----------|-------|
-| Customers | `create_customer`, `get_customer`, `search_customers`, `update_customer`, `delete_customer` |
-| Products | `create_product`, `get_product`, `get_product_by_code`, `search_products`, `update_product`, `delete_product` |
-| Establishments | `create_establishment`, `get_establishment`, `list_establishments`, `update_establishment`, `delete_establishment` |
-| Numbering | `create_numbering_range`, `get_active_numbering_ranges`, `get_default_numbering_range`, `fetch_numbering_ranges_from_factus` |
-| Invoices | `create_invoice`, `create_invoice_with_numbering`, `list_invoices`, `get_invoice_by_number`, `get_invoice_by_reference`, `delete_invoice`, `download_invoice_pdf`, `download_invoice_xml` |
-| Credit Notes | `create_credit_note`, `list_credit_notes`, `get_credit_note`, `delete_credit_note`, `download_credit_note_pdf`, `download_credit_note_xml` |
-| Adj. Notes | `create_adjustment_note`, `list_adjustment_notes`, `get_adjustment_note`, `delete_adjustment_note`, `download_adjustment_note_pdf`, `download_adjustment_note_xml` |
-| Support Docs | `create_support_document`, `list_support_documents`, `get_support_document`, `delete_support_document`, `download_support_document_pdf`, `download_support_document_xml` |
-| Company | `get_company_info` |
+| Category       | Tools                                                                                                                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Customers      | `create_customer`, `get_customer`, `search_customers`, `update_customer`, `delete_customer`                                                                                               |
+| Products       | `create_product`, `get_product`, `get_product_by_code`, `search_products`, `update_product`, `delete_product`                                                                             |
+| Establishments | `create_establishment`, `get_establishment`, `list_establishments`, `update_establishment`, `delete_establishment`                                                                        |
+| Numbering      | `create_numbering_range`, `get_active_numbering_ranges`, `get_default_numbering_range`, `fetch_numbering_ranges_from_factus`                                                              |
+| Invoices       | `create_invoice`, `create_invoice_with_numbering`, `list_invoices`, `get_invoice_by_number`, `get_invoice_by_reference`, `delete_invoice`, `download_invoice_pdf`, `download_invoice_xml` |
+| Credit Notes   | `create_credit_note`, `list_credit_notes`, `get_credit_note`, `delete_credit_note`, `download_credit_note_pdf`, `download_credit_note_xml`                                                |
+| Adj. Notes     | `create_adjustment_note`, `list_adjustment_notes`, `get_adjustment_note`, `delete_adjustment_note`, `download_adjustment_note_pdf`, `download_adjustment_note_xml`                        |
+| Support Docs   | `create_support_document`, `list_support_documents`, `get_support_document`, `delete_support_document`, `download_support_document_pdf`, `download_support_document_xml`                  |
+| Company        | `get_company_info`                                                                                                                                                                        |
 
 ---
 
