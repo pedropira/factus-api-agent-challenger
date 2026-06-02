@@ -25,6 +25,10 @@ RUN NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
     NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY}" \
     npx prisma generate && npm run build
 
+# Strip devDependencies — only keep production deps (prisma included)
+# This gives us a clean node_modules for the runner
+RUN npm prune --production
+
 # ── Runner ────────────────────────────────────────────────────────────
 FROM base AS runner
 WORKDIR /app
@@ -40,12 +44,13 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema + CLI so entrypoint can sync the database
+# Copy production node_modules (includes prisma CLI + all deps transitives)
+# This replaces the individual package copies — prisma 7+ requires many
+# transitive deps (effect, @prisma/config, get-platform, engines, etc.)
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy Prisma schema so entrypoint can sync the database
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-# Copy .bin symlinks so start.sh can resolve prisma locally (not broken global path)
-COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy entrypoint script
 COPY start.sh /start.sh
