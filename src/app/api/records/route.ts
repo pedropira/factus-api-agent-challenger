@@ -46,9 +46,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error("Records API error:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error("🔥 [Records API] Error inesperado:", {
+      type: request.nextUrl.searchParams.get("type"),
+      message,
+      stack,
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: message || "Internal server error" },
       { status: 500 },
     );
   }
